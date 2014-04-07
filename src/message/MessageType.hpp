@@ -1,0 +1,1 @@
+enum MessageType { REQUEST = 0, AGREE, RETURN, REQUEST_DATA, DATA };
