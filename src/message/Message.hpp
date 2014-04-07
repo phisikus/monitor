@@ -9,7 +9,8 @@ class Message
 		long referenceId;
 		bool hasData;
 		long dataSize;
-		void *data;
+		void *data;		
+		bool cmp(Message *a, Message *b);
 
 	private:
 };
