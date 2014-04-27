@@ -1,17 +1,18 @@
 #include "message/Message.hpp"
+#include "message/Communicator.hpp"
 #include <string>
 #include <thread>
-#include <mpi.h>
+#include <mutex>
 #include <sys/types.h>
 using namespace std;
 
-#define DEBUG
+
 
 class Monitor
 {
 	public:
-		int monitorId;
-		char *monitorName;
+		Communicator *communicator;
+		mutex communicationMutex;		
 		
 		Monitor();
 		Monitor(int argc, char **argv);
@@ -19,13 +20,16 @@ class Monitor
 		void log(string text);
 		void lockMutex(int mutexId);
 		void unlockMutex(int mutexId);
+		void finalize();
 
 	private:
 		thread *communicationThread; 
 
 		void init(int argc, char **argv);
 		void communicationLoop();
-		void finalize();
+		void sendMessage(Message msg);
+		Message* recvMessage();
+		
 
 
 };	

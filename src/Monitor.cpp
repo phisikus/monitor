@@ -6,6 +6,7 @@ using namespace std;
 
 Monitor::Monitor()
 {
+	this->communicator = new Communicator();	
 	this->log("Monitor: object created. ");
 	this->init(0, NULL);
 
@@ -13,6 +14,7 @@ Monitor::Monitor()
 
 Monitor::Monitor(int argc, char **argv)
 {
+	this->communicator = new Communicator();	
 	this->log("Monitor: object created. ");
 	this->init(argc, argv);
 }
@@ -25,47 +27,36 @@ Monitor::~Monitor()
 
 void Monitor::log(string text)
 {
-	#ifdef DEBUG
-	string message = "";
-	if(this->monitorName != NULL) 
-	{
-		message += "[";
-		message += this->monitorName;
-		message += " " + std::to_string(this->monitorId) + "] ";
-	}
-	message += text;
-	cout << message << endl;		
-		
-	#endif
+	this->communicator->log(text);
 };
 
 
 void Monitor::init(int argc, char **argv)
 {
 	this->log("Monitor: initializing...");
-
-	// Initialize MPI enviroment
-	this->monitorName = new char[MPI_MAX_PROCESSOR_NAME];
-	this->communicationThread = (pthread_t) NULL;
-	MPI::Init_thread(argc, argv, MPI_THREAD_MULTIPLE);
-	MPI_Comm_rank(MPI_COMM_WORLD, &(this->monitorId));
-	MPI_Get_processor_name(this->monitorName, new int);	
-	this->communicationThread = new thread(&Monitor::communicationLoop,this);
-
+	this->communicationThread = NULL;
+	this->communicator->init(argc, argv);
+	
+	// send START
+	this->communicationMutex.lock();
+	
+	this->communicationMutex.unlock();
+	
+	this->communicationThread = new thread(&Monitor::communicationLoop,this);	
+	this->log("Monitor: Communication loop started.");
 	this->log("Monitor: initialized. ");
 
 }
 
 void Monitor::finalize()
 {
-	MPI::Finalize();	
+	communicator->close();
 	this->log("Monitor: MPI finalized. ");
-
 }
 
 void Monitor::communicationLoop()
 {
-	this->log("Monitor: Communication loop started.");
+	
 }
 
 void Monitor::lockMutex(int mutexId) 
