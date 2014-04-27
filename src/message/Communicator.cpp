@@ -5,7 +5,10 @@ void Communicator::init(int argc, char **argv)
 	this->processName = new char[MPI_MAX_PROCESSOR_NAME];
 	MPI::Init_thread(argc, argv, MPI_THREAD_MULTIPLE);
 	MPI_Comm_rank(MPI_COMM_WORLD, &this->processId);
-	MPI_Get_processor_name(this->processName, new int);	
+	MPI_Comm_size(MPI_COMM_WORLD, &this->processCount);
+	MPI_Get_processor_name(this->processName, new int);
+	this->activePeers.resize(this->processCount, true);	
+	this->activePeers[this->processId] = false;
 	this->initialized = true;
 };
 
@@ -13,8 +16,9 @@ void Communicator::close()
 {
 	if(this->initialized)
 	{
+		communicationMutex.lock();
 		this->initialized = false;
-		MPI::Finalize();			
+		MPI::Finalize();				
 	}
 }
 
@@ -36,23 +40,49 @@ void Communicator::log(string text)
 
 void Communicator::sendMessage(Message *msg)
 {
+	if(!initialized) return;
+	
+	communicationMutex.lock();	
 	if(msg != NULL)
 	{			
-		this->log("Sending message " + toString(msg->type) + "  to " + to_string(msg->recipientId));		
-		MPI_Isend(msg->getArray(), msg->getArraySize(), MPI_INT, msg->senderId, 0, MPI_COMM_WORLD, new MPI_Request());
-		
+		this->clock++;
+		msg->senderId = this->processId;
+		msg->clock = this->clock;
+		this->log("Sending message " + toString(msg->type) + " to " + to_string(msg->recipientId) + " (size = " + to_string(msg->getArraySize()) + " )");		
+		MPI_Isend(msg->getArray(), msg->getArraySize(), MPI_CHAR, msg->recipientId, 0, MPI_COMM_WORLD, new MPI_Request());		
+	}
+	communicationMutex.unlock();
+}
+
+void Communicator::sendBroadcast(Message *msg)
+{
+	for(unsigned int i = 0; i < activePeers.size(); i++)
+	{
+		if(activePeers[i])
+		{
+			msg->recipientId = i;		
+			sendMessage(msg);
+		}
 	}
 }
 
 
 Message* Communicator::recvMessage()
 {
-/*    Message *msg = new Message;
-    int data[6];
+	if(!initialized) return NULL;
+	
+	communicationMutex.lock();
     MPI_Status status;
-    MPI_Recv(data, msg->getArraySize(), MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-    msg->fromArray(data);
-    me->clock = max(me->clock, msg->clock + 1);
-    return msg;*/	
+    int packetSize;
+    
+	MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+	MPI_Get_count(&status, MPI_CHAR, &packetSize);
+	MessageDTO *packet = (MessageDTO *) malloc(packetSize);
+	MPI_Recv(packet, packetSize, MPI_CHAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+	
+	Message *msg = new Message(packet);	
+    this->clock = max(this->clock, msg->clock + 1);    
+    communicationMutex.unlock();
+    return msg;
 }
 

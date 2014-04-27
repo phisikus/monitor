@@ -2,23 +2,38 @@
 #define INCLUDE_MESSAGE_HPP
 #include "MessageType.hpp"
 
-class Message
-{	
-	public:
-		long messageId;
+struct MessageDTO
+{
+		long clock;
 		int senderId;
 		int recipientId;
 		MessageType type;
 		long referenceId;
 		bool hasData;
 		long dataSize;
-		void *data;		
+		char data[1]; // fake size of array	
+};
+
+
+class Message
+{	
+	public:
+		long clock;
+		int senderId;
+		int recipientId;
+		MessageType type;
+		long referenceId;
+		bool hasData = false;
+		long dataSize = 0;
+		char *data;		
 		
 		bool cmp(Message *a, Message *b);
-		char* getArray();
+		void* getArray();
 		long getArraySize();
-				
-		Message(char *sourceArray);		
+
+		Message();
+		Message(MessageDTO *dto);		
 };
+
 
 #endif
