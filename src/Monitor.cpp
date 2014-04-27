@@ -73,11 +73,15 @@ void Monitor::communicationLoop()
 			
 		this->log("Received: " + toString(msg->type) + " from: " + to_string(msg->senderId));							
 		
-		if(msg->type == QUIT)
+		switch(msg->type)
 		{
-			communicator->activePeers[msg->senderId] = false;			
+			case QUIT:
+				communicator->activePeers[msg->senderId] = false;				
+				break;
+			default:
+				break;
+			
 		}
-		cout << (char*) msg->data << endl;
 		
 		
 		
