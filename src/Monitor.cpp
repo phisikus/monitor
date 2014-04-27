@@ -75,24 +75,24 @@ void Monitor::communicationLoop()
 		
 		switch(msg->type)
 		{
-			case QUIT:
+			case QUIT:				
 				communicator->activePeers[msg->senderId] = false;				
 				break;
+							
+				
 			default:
 				break;
 			
 		}
 		
-		
-		
 	}
 	
 }
 
-void Monitor::lockMutex(int mutexId) 
+void Monitor::lockMutex(Mutex mutexId) 
 {
 }
 
-void Monitor::unlockMutex(int mutexId)
+void Monitor::unlockMutex(Mutex mutexId)
 {
 }

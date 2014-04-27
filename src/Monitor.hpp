@@ -1,3 +1,4 @@
+#include "mutex/Mutex.hpp"
 #include "message/Message.hpp"
 #include "message/Communicator.hpp"
 #include <string>
@@ -17,8 +18,8 @@ class Monitor
 		Monitor(int argc, char **argv);
 		~Monitor();
 		void log(string text);
-		void lockMutex(int mutexId);
-		void unlockMutex(int mutexId);
+		void lockMutex(Mutex mutexId);
+		void unlockMutex(Mutex mutexId);
 		void finalize();
 
 	private:
