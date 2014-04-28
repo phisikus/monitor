@@ -18,16 +18,16 @@ class Mutex
 		mutex operationMutex; // local mutex that will block communicationLoop for this distributed Mutex during lock/unlock.		
 		Message *previousReturn; // This field will contain most recent RETURN message (based on clock). When we enter CS it will be possible to get current data.
 		condition_variable criticalSectionCondition; // On this variable lock() will wait till all agrees are collected by communicationLoop and DATA packet is send if needed
-		
-		
+
+
 		Mutex(int id);	
 		static Mutex * getMutex(int id);
 		void * getData();
-		int getDataSize();
-		
+		long getDataSize();
+
 	private:
 		static list<pair<int,Mutex*>> *existingMutexes;
-		
+
 };
 
 #endif

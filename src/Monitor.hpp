@@ -12,7 +12,7 @@ class Monitor
 {
 	public:
 		Communicator *communicator;
-		
+
 		Monitor();
 		Monitor(int argc, char **argv);
 		~Monitor();
@@ -23,12 +23,12 @@ class Monitor
 
 	private:
 		thread *communicationThread; 
-		
+
 		void init(int argc, char **argv);
 		void communicationLoop();
 		void sendMessage(Message msg);
 		Message* recvMessage();
-		
+
 
 
 };	

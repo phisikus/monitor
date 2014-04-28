@@ -35,9 +35,9 @@ Mutex * Mutex::getMutex(int id)
 
 void * Mutex::getData()
 {
-	if((this->msg != NULL) && (this->msg->hasData))
+	if((this->previousReturn != NULL) && (this->previousReturn->hasData))
 	{
-		return this->msg->data;
+		return this->previousReturn->data;
 	}
 		
 	return NULL;
@@ -46,9 +46,9 @@ void * Mutex::getData()
 
 long Mutex::getDataSize()
 {
-	if((this->msg != NULL) && (this->msg->hasData))
+	if((this->previousReturn != NULL) && (this->previousReturn->hasData))
 	{
-		return this->msg->dataSize;
+		return this->previousReturn->dataSize;
 	}
 	
 	return 0;
