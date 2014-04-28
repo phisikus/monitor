@@ -4,10 +4,12 @@
 
 int main(int argc, char *argv[])
 {
-	Monitor *monitor = new Monitor();			
+	//Monitor *monitor = new Monitor();	
+	new Mutex(1);
+	new Mutex(1);		
 	while(true);;
-	monitor->finalize();	
+	/*monitor->finalize();	
 	delete monitor;
-	monitor = NULL;
+	monitor = NULL;*/
 	return 0;
 }
