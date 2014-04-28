@@ -1,10 +1,12 @@
 #ifndef INCLUDE_MUTEX_HPP
 #define INCLUDE_MUTEX_HPP
+#include "../message/Message.hpp"
 #include <vector>
 #include <algorithm>
 #include <list>
 #include <mutex>
 #include <stdexcept>
+#include <condition_variable>
 using namespace std;
 
 class Mutex
