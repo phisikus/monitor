@@ -64,4 +64,18 @@ list<Mutex *> * Mutex::getMutexes()
 	}
 	return listOfMutexes;
 }
+
+bool Mutex::agreeVectorTrue()
+{
+	if(this->agreeVector == NULL)
+		return false;
+		
+	for(unsigned int i = 0; i < this->agreeVector->size(); i++)
+	{
+		if((*this->agreeVector)[i] != true)
+			return false;
+	}
+	
+	return true;
+}
 	

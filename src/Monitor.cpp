@@ -90,7 +90,14 @@ void Monitor::communicationLoop()
 				communicator->getCommunicationMutex()->lock();
 				communicator->activePeers[msg->senderId] = false;				
 				communicator->getCommunicationMutex()->unlock();
-				// For all Mutexes block them and fix their agree vectors, also activePeers
+				for (std::list<Mutex*>::iterator it = Mutex::getMutexes()->begin(); it != Mutex::getMutexes()->end(); ++it)
+				{					
+					(*it)->operationMutex.lock();
+					if((*it)->requesting)
+						(*(*it)->agreeVector)[msg->senderId] = false;
+					(*it)->operationMutex.unlock();														
+				}
+												
 				break;
 				
 			case RETURN:				
