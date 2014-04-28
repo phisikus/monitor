@@ -47,7 +47,7 @@ void Communicator::sendMessage(Message *msg)
 	if(!initialized) return;
 	
 	communicationMutex.lock();	
-	if(msg != NULL)
+	if((msg != NULL) && (this->activePeers[msg->recipientId]))
 	{			
 		this->clock++;
 		msg->senderId = this->processId;
@@ -62,11 +62,8 @@ void Communicator::sendBroadcast(Message *msg)
 {
 	for(unsigned int i = 0; i < activePeers.size(); i++)
 	{
-		if(activePeers[i])
-		{
-			msg->recipientId = i;		
-			sendMessage(msg);
-		}
+		msg->recipientId = i;		
+		sendMessage(msg);		
 	}
 }
 
@@ -92,3 +89,7 @@ Message* Communicator::recvMessage()
     return msg;
 }
 
+mutex * Communicator::getCommunicationMutex()
+{
+	return &this->communicationMutex;
+}

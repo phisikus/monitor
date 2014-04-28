@@ -25,6 +25,8 @@ class Communicator
 		Message* recvMessage();
 		void log(LogLevel level, string text);
 		void close();
+		
+		mutex * getCommunicationMutex();
 	private: 
 		mutex communicationMutex;				
 };

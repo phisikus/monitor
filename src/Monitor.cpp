@@ -87,7 +87,9 @@ void Monitor::communicationLoop()
 				break;
 				
 			case QUIT:				
+				communicator->getCommunicationMutex()->lock();
 				communicator->activePeers[msg->senderId] = false;				
+				communicator->getCommunicationMutex()->unlock();
 				// For all Mutexes block them and fix their agree vectors, also activePeers
 				break;
 				
