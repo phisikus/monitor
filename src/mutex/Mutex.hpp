@@ -24,6 +24,7 @@ class Mutex
 
 		Mutex(int id);	
 		static Mutex * getMutex(int id);
+		static list<Mutex *> * getMutexes();
 		void * getData();
 		long getDataSize();
 

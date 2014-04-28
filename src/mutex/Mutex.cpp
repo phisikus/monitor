@@ -53,4 +53,15 @@ long Mutex::getDataSize()
 	
 	return 0;
 }
+
+
+list<Mutex *> * Mutex::getMutexes()
+{
+	list<Mutex *> *listOfMutexes = new list<Mutex *>();
+	for (std::list<pair<int,Mutex *>>::iterator it = existingMutexes->begin(); it != existingMutexes->end(); ++it)
+	{
+		listOfMutexes->push_back(it->second);
+	}
+	return listOfMutexes;
+}
 	
