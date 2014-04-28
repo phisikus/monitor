@@ -97,7 +97,7 @@ void Monitor::communicationLoop()
 						(*(*it)->agreeVector)[msg->senderId] = false;
 					(*it)->operationMutex.unlock();														
 				}
-												
+				// check if there are any winners...								
 				break;
 				
 			case RETURN:				
