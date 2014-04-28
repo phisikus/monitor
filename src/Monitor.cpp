@@ -73,10 +73,44 @@ void Monitor::communicationLoop()
 				
 		switch(msg->type)
 		{
+			case START:
+				// Nothing to do here.
+				break;
+				
+			case REQUEST:
+				// 1. Find Mutex of given id. ALL MUTEXES Should exist before that point!
+				// 2. If Mutex has requesting = false - reply with AGREE and break;
+				// 3. If Mutex has requesting = true
+				//		if requesting process has better packet -> send AGREE
+				//			else -> add id of this process to heldUpRequests in Mutex,					
+				//		
+				break;
+				
 			case QUIT:				
 				communicator->activePeers[msg->senderId] = false;				
+				// For all Mutexes block them and fix their agree vectors, also activePeers
 				break;
-							
+				
+			case RETURN:				
+				// 1. Save in mutex this packet. It doesn't matter if we're requesting. It might be possible that none will and after a while we will just get AGREE from all processes.
+				// 2. Do everything like in AGREE packet.
+				break;
+			
+			case REQUEST_DATA:
+				// 1. Find Mutex
+				// 2. Send DATA message with data
+				break;
+				
+			case DATA:
+				// 1. Save data in Mutex
+				// 2. Call conditional variable
+				break;
+				
+			case AGREE:
+				// 1. Upgrade agree vector in Mutex (if requesting == true)
+				// 2. If there is no data i Mutex (last RETURN) then signal() conditional variable
+				// 3. If there is some data required - send REQUEST_DATA.
+				break;
 				
 			default:
 				break;
@@ -89,8 +123,23 @@ void Monitor::communicationLoop()
 
 void Monitor::lock(Mutex *mutex) 
 {
+	/*
+	 * 1. Lock local mutex related to Mutex
+	 * 2. Send REQUEST + set requesting in mutex + clock
+	 * 3. Wait on conditional variable
+	 * 4. Set inCs, Unlock local mutex
+	 * 5. exit
+	 */
 }
 
 void Monitor::unlock(Mutex *mutex)
 {
+	/*
+	 * 0. Lock local mutex
+	 * 1. Build RETURN msg with hasData = true (if there was any in Mutex)
+	 * 2. Send it
+	 * 3. Clear Mutex structures related to this C.S. 
+	 * 4. Send AGREE to hosts waiting (list in mutex)
+	 * 5. unlock local mutex, exit
+	 * */
 }

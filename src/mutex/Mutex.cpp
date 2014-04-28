@@ -11,6 +11,7 @@ Mutex::Mutex(int id)
 		throw new invalid_argument("Mutex of that ID already exists");
 	
 	this->id = id;	
+	this->agreeVector = NULL;
 	
 	pair<int, Mutex *> *p = new pair<int, Mutex *>;
 	p->first = id;
@@ -30,3 +31,26 @@ Mutex * Mutex::getMutex(int id)
 	}
 	return NULL;
 }
+
+
+void * Mutex::getData()
+{
+	if((this->msg != NULL) && (this->msg->hasData))
+	{
+		return this->msg->data;
+	}
+		
+	return NULL;
+}
+
+
+long Mutex::getDataSize()
+{
+	if((this->msg != NULL) && (this->msg->hasData))
+	{
+		return this->msg->dataSize;
+	}
+	
+	return 0;
+}
+	
