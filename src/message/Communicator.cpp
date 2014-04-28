@@ -22,20 +22,24 @@ void Communicator::close()
 	}
 }
 
-void Communicator::log(string text)
+void Communicator::log(LogLevel level, string text)
 {
-	#ifdef DEBUG
-	string message = "";
-	if(this->processName != NULL) 
-	{
-		message += "[";
-		message += this->processName;
-		message += " " + to_string(this->processId) + "] ";
-	}
-	message += text;
-	cout << message << endl;		
-		
+	#ifndef DEBUG
+	if(level != TRACE)
 	#endif
+	{
+		string message = "";
+		if(this->processName != NULL) 
+		{
+			message += "[";
+			message += this->processName;
+			message += " " + to_string(this->processId) + "] ";
+		}
+		message += text;
+		cout << message << endl;				
+	}
+	
+		
 }
 
 void Communicator::sendMessage(Message *msg)
@@ -48,7 +52,7 @@ void Communicator::sendMessage(Message *msg)
 		this->clock++;
 		msg->senderId = this->processId;
 		msg->clock = this->clock;
-		this->log("Sending message " + toString(msg->type) + " to " + to_string(msg->recipientId) + " (size = " + to_string(msg->getArraySize()) + " )");		
+		this->log(TRACE,"Sending message " + toString(msg->type) + " to " + to_string(msg->recipientId) + " (size = " + to_string(msg->getArraySize()) + " )");		
 		MPI_Isend(msg->getArray(), msg->getArraySize(), MPI_CHAR, msg->recipientId, 0, MPI_COMM_WORLD, new MPI_Request());		
 	}
 	communicationMutex.unlock();
@@ -83,6 +87,8 @@ Message* Communicator::recvMessage()
 	Message *msg = new Message(packet);	
     this->clock = max(this->clock, msg->clock + 1);    
     communicationMutex.unlock();
+    this->log(TRACE, "Received: " + toString(msg->type) + " from: " + to_string(msg->senderId));							
+		
     return msg;
 }
 

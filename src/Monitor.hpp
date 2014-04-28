@@ -8,7 +8,6 @@
 using namespace std;
 
 
-
 class Monitor
 {
 	public:
@@ -17,9 +16,9 @@ class Monitor
 		Monitor();
 		Monitor(int argc, char **argv);
 		~Monitor();
-		void log(string text);
-		void lockMutex(Mutex mutexId);
-		void unlockMutex(Mutex mutexId);
+		void log(LogLevel level, string text);
+		void lock(Mutex *mutex);
+		void unlock(Mutex *mutex);
 		void finalize();
 
 	private:

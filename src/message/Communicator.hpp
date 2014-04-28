@@ -7,6 +7,8 @@ using namespace std;
 
 #define DEBUG
 
+enum LogLevel { TRACE, INFO, ERROR };
+
 class Communicator
 {
 	public:	
@@ -21,7 +23,7 @@ class Communicator
 		void sendMessage(Message *msg);
 		void sendBroadcast(Message *msg);
 		Message* recvMessage();
-		void log(string text);
+		void log(LogLevel level, string text);
 		void close();
 	private: 
 		mutex communicationMutex;				

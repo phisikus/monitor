@@ -15,8 +15,10 @@ class Mutex
 		vector<bool> *agreeVector;
 		
 		Mutex(int id);	
+		static Mutex * getMutex(int id);
+		
 	private:
-		static list<int> *existingMutexes;
+		static list<pair<int,Mutex*>> *existingMutexes;
 		
 };
 
