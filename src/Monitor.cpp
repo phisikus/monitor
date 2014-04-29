@@ -43,6 +43,7 @@ void Monitor::init(int argc, char **argv)
 	msg->data = this->communicator->processName;
 	msg->dataSize = strlen(this->communicator->processName);
 	communicator->sendBroadcast(msg);
+	delete msg;
 	
 	this->communicationThread = new thread(&Monitor::communicationLoop,this);	
 		
@@ -74,10 +75,12 @@ void Monitor::communicationLoop()
 		switch(msg->type)
 		{
 			case START:
-				// Nothing to do here.
+				// Nothing to do here...
+				delete msg;
 				break;
 				
 			case REQUEST:
+			
 				// 1. Find Mutex of given id. ALL MUTEXES Should exist before that point!
 				// 2. If Mutex has requesting = false - reply with AGREE and break;
 				// 3. If Mutex has requesting = true
@@ -94,9 +97,11 @@ void Monitor::communicationLoop()
 				{					
 					(*it)->operationMutex.lock();
 					if((*it)->requesting)
-						(*(*it)->agreeVector)[msg->senderId] = false;
+						(*(*it)->agreeVector)[msg->senderId] = true;
 					(*it)->operationMutex.unlock();														
 				}
+				delete msg;
+				
 				// check if there are any winners...								
 				break;
 				
@@ -106,19 +111,58 @@ void Monitor::communicationLoop()
 				break;
 			
 			case REQUEST_DATA:
-				// 1. Find Mutex
-				// 2. Send DATA message with data
-				break;
-				
+				{
+					Mutex *m = Mutex::getMutex(msg->referenceId);
+					if(m != NULL)
+					{
+						m->operationMutex.lock();
+						if((m->previousReturn != NULL) && (m->previousReturn->type == DATA))
+						{
+							// Copy data packet from Mutex, received earlier and send it further.
+							void *packet = new char[m->previousReturn->getArraySize()];						
+							Message *dataMessage = new Message((MessageDTO *) packet);
+							dataMessage->recipientId = msg->senderId;
+							communicator->sendMessage(dataMessage);
+							delete dataMessage;
+						}
+						m->operationMutex.unlock();
+					}					
+					delete msg;
+					break;
+				}	
 			case DATA:
-				// 1. Save data in Mutex
-				// 2. Call conditional variable
+				{
+					Mutex *m = Mutex::getMutex(msg->referenceId);
+					if(m != NULL)
+					{						
+						m->operationMutex.lock();
+						m->previousReturn = msg; // Save message with data to Mutex property.
+						msg = NULL;
+						m->operationMutex.unlock();
+					}
+					
+				}			
+				// 2. Call conditional variable TODO
 				break;
 				
 			case AGREE:
-				// 1. Upgrade agree vector in Mutex (if requesting == true)
-				// 2. If there is no data i Mutex (last RETURN) then signal() conditional variable
-				// 3. If there is some data required - send REQUEST_DATA.
+					{
+						Mutex *m = Mutex::getMutex(msg->referenceId);
+						m->operationMutex.lock();							
+						if((m != NULL) && (m->requesting))
+						{						
+							(*(m->agreeVector))[msg->senderId] = true;
+							// If there is no RETURN package in previousReturn - it is beginning of program and we are first to go - we should create fake return with no data.
+							// If there is RETURN package in previousReturn and there is data - send REQUEST_DATA.
+							// Check if winner....
+							
+							
+						}
+						m->operationMutex.unlock();
+						delete msg;
+						
+					}		
+				
 				break;
 				
 			default:
@@ -132,12 +176,14 @@ void Monitor::communicationLoop()
 
 void Monitor::lock(Mutex *mutex) 
 {
+	// Tutaj osobny lock na zmienną warunkową, bo nie chcemy zablokować możliwości przychodzenia AGREE
 	/*
-	 * 1. Lock local mutex related to Mutex
+	 * 1. Lock local mutex related to Mutex's conditional variable
 	 * 2. Send REQUEST + set requesting in mutex + clock
-	 * 3. Wait on conditional variable
-	 * 4. Set inCs, Unlock local mutex
-	 * 5. exit
+	 * 3. Lock mutex for communication to check activePeers
+	 * 4. Wait on conditional variable
+	 * 5. Set inCs, Unlock local conditional mutex
+	 * 6. exit
 	 */
 }
 
