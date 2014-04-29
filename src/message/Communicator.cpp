@@ -72,10 +72,7 @@ Message* Communicator::recvMessage()
 {
 	if(!initialized) return NULL;	
 	
-	communicationMutex.lock();
-	
-	if(!this->activePeers[msg->recipientId]) return NULL;
-	
+	communicationMutex.lock();	
     MPI_Status status;
     int packetSize;
     

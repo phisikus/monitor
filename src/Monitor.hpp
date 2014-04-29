@@ -26,9 +26,7 @@ class Monitor
 
 		void init(int argc, char **argv);
 		void communicationLoop();
-		void sendMessage(Message msg);
-		Message* recvMessage();
-
+		
 
 
 };	
