@@ -70,9 +70,12 @@ void Communicator::sendBroadcast(Message *msg)
 
 Message* Communicator::recvMessage()
 {
-	if(!initialized) return NULL;
+	if(!initialized) return NULL;	
 	
 	communicationMutex.lock();
+	
+	if(!this->activePeers[msg->recipientId]) return NULL;
+	
     MPI_Status status;
     int packetSize;
     
