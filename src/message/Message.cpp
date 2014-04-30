@@ -43,10 +43,15 @@ long Message::getArraySize()
 	return sizeof(MessageDTO) + this->dataSize - 1;
 }
 
+ bool Message::operator<(Message& b) {
+   return this->cmp(this, &b);
+}
+
+
 bool Message::cmp(Message *a, Message *b)
 {
 	if(a->clock == b->clock)
 		return (a->senderId < b->senderId);
 	
 	return (a->clock < b->clock);	
-};
+}

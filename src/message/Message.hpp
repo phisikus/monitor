@@ -27,6 +27,7 @@ class Message
 		long dataSize = 0;
 		char *data;		
 
+		bool operator<(Message& b);
 		bool cmp(Message *a, Message *b);
 		void* getArray();
 		long getArraySize();

@@ -80,13 +80,51 @@ void Monitor::communicationLoop()
 				break;
 				
 			case REQUEST:
-			
-				// 1. Find Mutex of given id. ALL MUTEXES Should exist before that point!
-				// 2. If Mutex has requesting = false - reply with AGREE and break;
-				// 3. If Mutex has requesting = true
-				//		if requesting process has better packet -> send AGREE
-				//			else -> add id of this process to heldUpRequests in Mutex,					
-				//		
+				{
+					Mutex *m = Mutex::getMutex(msg->referenceId);
+					if(m != NULL)
+					{
+						m->operationMutex.lock();
+						if(m->requesting)
+						{
+							// If REQUEST has earlier time than ours -> AGREE
+							// If time is the same but we have higher ID -> AGREE
+							if(m->requestClock < msg->clock)
+							{
+								// Add to queue
+								m->heldUpRequests.push_back(msg->senderId);								
+							}
+							else
+							{
+								if((m->requestClock == msg->clock) && (communicator->processId < msg->senderId))
+								{
+										m->heldUpRequests.push_back(msg->senderId);																	
+								}
+								else
+								{
+									Message *agreeReply = new Message();
+									agreeReply->type = AGREE;
+									agreeReply->referenceId = msg->referenceId;
+									agreeReply->recipientId = msg->senderId;
+									communicator->sendMessage(agreeReply);
+									delete agreeReply;
+								}
+							}						
+							
+						}
+						else
+						{
+							Message *agreeReply = new Message();
+							agreeReply->type = AGREE;
+							agreeReply->referenceId = msg->referenceId;
+							agreeReply->recipientId = msg->senderId;
+							communicator->sendMessage(agreeReply);
+							delete agreeReply;
+							
+						}
+						m->operationMutex.unlock();
+					}
+				}
 				break;
 				
 			case QUIT:				
