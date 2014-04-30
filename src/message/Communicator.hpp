@@ -22,6 +22,7 @@ class Communicator
 		void init(int argc, char **argv);
 		void sendMessage(Message *msg);
 		void sendBroadcast(Message *msg);
+		void waitForMessage();
 		Message* recvMessage();
 		void log(LogLevel level, string text);
 		void close();

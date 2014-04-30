@@ -67,6 +67,7 @@ void Monitor::communicationLoop()
 	Message *msg;
 	while(true)
 	{			
+		communicator->waitForMessage();
 		msg = communicator->recvMessage();		
 		
 		if(msg == NULL)
@@ -293,7 +294,6 @@ void Monitor::lock(Mutex *mutex)
 	// Determine which other processes should agree before we can get in (all except those who sent QUIT)
 	if(mutex->agreeVector != NULL)
 		delete mutex->agreeVector;
-		
 	communicator->getCommunicationMutex()->lock();
 	mutex->agreeVector = new vector<bool>(communicator->activePeers.size(), false);
 	for(unsigned int i = 0; i < communicator->activePeers.size(); i++)
@@ -337,7 +337,7 @@ void Monitor::unlock(Mutex *mutex)
 		retMessage->hasData = mutex->previousReturn->hasData;			
 	}	
 	
-	// send Messages to all held up
+	// send Messages to all held up processes
 	for(unsigned int i = 0; i < mutex->heldUpRequests.size(); i++)
 	{		
 		retMessage->recipientId = mutex->heldUpRequests.back();
@@ -366,3 +366,4 @@ void Monitor::unlock(Mutex *mutex)
 		
 	
 }
+

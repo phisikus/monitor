@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
 	monitor->lock(m);
 	monitor->log(INFO, "CS");	
 	monitor->unlock(m);	
+	while(true);
 	monitor->finalize();	
 	delete monitor;
 	monitor = NULL;
