@@ -28,8 +28,9 @@ class Mutex
 		static Mutex * getMutex(int id);
 		static list<Mutex *> * getMutexes();
 		bool agreeVectorTrue();
-		void * getData();
+		void * getData();		
 		long getDataSize();		
+		void setDataForReturn(char *data, long size); // Create new previousReturn Message of type DATA with given data
 
 	private:
 		static list<pair<int,Mutex*>> *existingMutexes;

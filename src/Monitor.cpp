@@ -154,9 +154,19 @@ void Monitor::communicationLoop()
 					if(m != NULL)
 					{
 						m->operationMutex.lock();
+						(*(m->agreeVector))[msg->senderId] = true;
+						
+						if(m->previousReturn != NULL)
+						{
+							if(m->previousReturn->data != NULL)
+								delete m->previousReturn->data;
+							
+							delete m->previousReturn;
+						}
+						
 						m->previousReturn = msg;
 						m->operationMutex.unlock();
-						enterCriticalSection(m);
+						enterCriticalSection(m);						
 					}
 				}
 				break;
@@ -237,7 +247,7 @@ void Monitor::enterCriticalSection(Mutex *m)
 {
 	if(m == NULL) return;
 	
-	m->operationMutex.lock();
+	m->operationMutex.lock();	
 	if((m->requesting) && (m->agreeVectorTrue()))
 	{
 		// conditions to enter C.S. were met. We should check if it is necessary to request for data...
@@ -262,17 +272,24 @@ void Monitor::enterCriticalSection(Mutex *m)
 					rd->recipientId = m->previousReturn->senderId;
 					rd->referenceId = m->previousReturn->referenceId;
 					communicator->sendMessage(rd);					
+					delete rd;
 				}
 				else
 				{
-					m->criticalSectionCondition.notify_one();			
+					m->requesting = false;
+					fill(m->agreeVector->begin(), m->agreeVector->end(), false);			
+					m->criticalSectionCondition.notify_one();	
+					m->operationMutex.unlock();		
 					return;
 				}
 			}
 			
 			if(m->previousReturn->type == DATA)
 			{
-				m->criticalSectionCondition.notify_one();			
+				m->requesting = false;
+				fill(m->agreeVector->begin(), m->agreeVector->end(), false);									
+				m->criticalSectionCondition.notify_one();	
+				m->operationMutex.unlock();		
 				return;				
 			}
 		}
@@ -307,9 +324,10 @@ void Monitor::lock(Mutex *mutex)
 	rm->type = REQUEST;
 	rm->referenceId = mutex->id;
 	communicator->sendBroadcast(rm);
-	
+		
 	// save the time of request
 	mutex->requestClock = rm->clock;
+	delete rm;
 	
 	// Wait for conditions to be met.
 	mutex->criticalSectionConditionLock = new unique_lock<std::mutex>(mutex->criticalSectionConditionMutex);	
