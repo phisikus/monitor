@@ -3,6 +3,7 @@
 #include "message/Communicator.hpp"
 #include <string>
 #include <thread>
+#include <mutex>
 #include <vector>
 #include <sys/types.h>
 using namespace std;
@@ -26,6 +27,8 @@ class Monitor
 
 		void init(int argc, char **argv);
 		void communicationLoop();
+		void enterCriticalSection(Mutex *m);
+		
 		
 
 

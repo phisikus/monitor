@@ -8,9 +8,8 @@ int main(int argc, char *argv[])
 
 	Mutex *m = new Mutex(1);			
 	monitor->lock(m);
-	monitor->log(INFO, "CS");
-	monitor->unlock(m);
-
+	monitor->log(INFO, "CS");	
+	monitor->unlock(m);	
 	monitor->finalize();	
 	delete monitor;
 	monitor = NULL;

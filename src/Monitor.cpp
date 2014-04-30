@@ -84,7 +84,7 @@ void Monitor::communicationLoop()
 					Mutex *m = Mutex::getMutex(msg->referenceId);
 					if(m != NULL)
 					{
-						m->operationMutex.lock();
+						m->operationMutex.lock();						
 						if(m->requesting)
 						{
 							// If REQUEST has earlier time than ours -> AGREE
@@ -92,13 +92,13 @@ void Monitor::communicationLoop()
 							if(m->requestClock < msg->clock)
 							{
 								// Add to queue
-								m->heldUpRequests.push_back(msg->senderId);								
+								m->heldUpRequests.push_back(msg->senderId);																
 							}
 							else
 							{
 								if((m->requestClock == msg->clock) && (communicator->processId < msg->senderId))
 								{
-										m->heldUpRequests.push_back(msg->senderId);																	
+										m->heldUpRequests.push_back(msg->senderId);																										
 								}
 								else
 								{
@@ -124,6 +124,7 @@ void Monitor::communicationLoop()
 						}
 						m->operationMutex.unlock();
 					}
+					delete msg;
 				}
 				break;
 				
@@ -134,18 +135,29 @@ void Monitor::communicationLoop()
 				for (std::list<Mutex*>::iterator it = Mutex::getMutexes()->begin(); it != Mutex::getMutexes()->end(); ++it)
 				{					
 					(*it)->operationMutex.lock();
-					if((*it)->requesting)
-						(*(*it)->agreeVector)[msg->senderId] = true;
+					if((*it)->requesting)				
+						(*(*it)->agreeVector)[msg->senderId] = true;					
 					(*it)->operationMutex.unlock();														
+					
+					// check if conditions to enter C.S. were met and signal conditional variable.
+					enterCriticalSection(*it);
 				}
 				delete msg;
+							
 				
-				// check if there are any winners...								
 				break;
 				
 			case RETURN:				
-				// 1. Save in mutex this packet. It doesn't matter if we're requesting. It might be possible that none will and after a while we will just get AGREE from all processes.
-				// 2. Do everything like in AGREE packet.
+				{
+					Mutex *m = Mutex::getMutex(msg->referenceId);
+					if(m != NULL)
+					{
+						m->operationMutex.lock();
+						m->previousReturn = msg;
+						m->operationMutex.unlock();
+						enterCriticalSection(m);
+					}
+				}
 				break;
 			
 			case REQUEST_DATA:
@@ -160,6 +172,7 @@ void Monitor::communicationLoop()
 							void *packet = new char[m->previousReturn->getArraySize()];						
 							Message *dataMessage = new Message((MessageDTO *) packet);
 							dataMessage->recipientId = msg->senderId;
+							dataMessage->referenceId = msg->referenceId;
 							communicator->sendMessage(dataMessage);
 							delete dataMessage;
 						}
@@ -178,9 +191,10 @@ void Monitor::communicationLoop()
 						msg = NULL;
 						m->operationMutex.unlock();
 					}
+					// check if conditions to enter C.S. were met and signal conditional variable.
+					enterCriticalSection(m);
 					
 				}			
-				// 2. Call conditional variable TODO
 				break;
 				
 			case AGREE:
@@ -189,14 +203,19 @@ void Monitor::communicationLoop()
 						m->operationMutex.lock();							
 						if((m != NULL) && (m->requesting))
 						{						
+							// Note that sender agreed.
 							(*(m->agreeVector))[msg->senderId] = true;
-							// If there is no RETURN package in previousReturn - it is beginning of program and we are first to go - we should create fake return with no data.
-							// If there is RETURN package in previousReturn and there is data - send REQUEST_DATA.
-							// Check if winner....
+							m->operationMutex.unlock();																
 							
+							// check if conditions to enter C.S. were met and signal conditional variable.
+							enterCriticalSection(m);											
 							
 						}
-						m->operationMutex.unlock();
+						else
+						{
+							m->operationMutex.unlock();
+						}
+						
 						delete msg;
 						
 					}		
@@ -212,27 +231,138 @@ void Monitor::communicationLoop()
 	
 }
 
+// Called when packets received: RETURN, DATA, AGREE
+void Monitor::enterCriticalSection(Mutex *m)
+{
+	if(m == NULL) return;
+	
+	m->operationMutex.lock();
+	if((m->requesting) && (m->agreeVectorTrue()))
+	{
+		// conditions to enter C.S. were met. We should check if it is necessary to request for data...
+		if(m->previousReturn == NULL)
+		{
+			// we are the first ones entering this section...
+			m->requesting = false;
+			fill(m->agreeVector->begin(), m->agreeVector->end(), false);			
+			m->criticalSectionCondition.notify_one();			
+			m->operationMutex.unlock();
+			return;
+		}
+		else
+		{
+			if(m->previousReturn->type == RETURN)
+			{
+				if(m->previousReturn->hasData)
+				{
+					// Ask for data from previous process that entered.
+					Message *rd = new Message();
+					rd->type = REQUEST_DATA;					
+					rd->recipientId = m->previousReturn->senderId;
+					rd->referenceId = m->previousReturn->referenceId;
+					communicator->sendMessage(rd);					
+				}
+				else
+				{
+					m->criticalSectionCondition.notify_one();			
+					return;
+				}
+			}
+			
+			if(m->previousReturn->type == DATA)
+			{
+				m->criticalSectionCondition.notify_one();			
+				return;				
+			}
+		}
+		
+		
+		
+	}
+	m->operationMutex.unlock();
+	
+}
+
 void Monitor::lock(Mutex *mutex) 
 {
-	// Tutaj osobny lock na zmienną warunkową, bo nie chcemy zablokować możliwości przychodzenia AGREE
-	/*
-	 * 1. Lock local mutex related to Mutex's conditional variable
-	 * 2. Send REQUEST + set requesting in mutex + clock
-	 * 3. Lock mutex for communication to check activePeers
-	 * 4. Wait on conditional variable
-	 * 5. Set inCs, Unlock local conditional mutex
-	 * 6. exit
-	 */
+	
+	// Set mutex to "requesting" state.
+	mutex->operationMutex.lock();
+	mutex->requesting = true;
+	
+	// Determine which other processes should agree before we can get in (all except those who sent QUIT)
+	if(mutex->agreeVector != NULL)
+		delete mutex->agreeVector;
+		
+	communicator->getCommunicationMutex()->lock();
+	mutex->agreeVector = new vector<bool>(communicator->activePeers.size(), false);
+	for(unsigned int i = 0; i < communicator->activePeers.size(); i++)
+	{
+		(* mutex->agreeVector)[i] = !communicator->activePeers[i];
+	}
+	communicator->getCommunicationMutex()->unlock();
+	
+	// Send Request.
+	Message *rm = new Message();
+	rm->type = REQUEST;
+	rm->referenceId = mutex->id;
+	communicator->sendBroadcast(rm);
+	
+	// save the time of request
+	mutex->requestClock = rm->clock;
+	
+	// Wait for conditions to be met.
+	mutex->criticalSectionConditionLock = new unique_lock<std::mutex>(mutex->criticalSectionConditionMutex);	
+	
+	mutex->operationMutex.unlock();
+	
+	while(mutex->requesting)
+		mutex->criticalSectionCondition.wait((* mutex->criticalSectionConditionLock));	
+		
+	this->log(INFO,"(" + to_string(mutex->id) + ") Locked.");
+		
 }
 
 void Monitor::unlock(Mutex *mutex)
 {
-	/*
-	 * 0. Lock local mutex
-	 * 1. Build RETURN msg with hasData = true (if there was any in Mutex)
-	 * 2. Send it
-	 * 3. Clear Mutex structures related to this C.S. 
-	 * 4. Send AGREE to hosts waiting (list in mutex)
-	 * 5. unlock local mutex, exit
-	 * */
+	mutex->operationMutex.lock();
+	
+	Message *retMessage = new Message();
+	retMessage->type = RETURN;
+	retMessage->referenceId = mutex->id;
+	retMessage->hasData = false;
+	
+	if(mutex->previousReturn != NULL)
+	{
+		retMessage->hasData = mutex->previousReturn->hasData;			
+	}	
+	
+	// send Messages to all held up
+	for(unsigned int i = 0; i < mutex->heldUpRequests.size(); i++)
+	{		
+		retMessage->recipientId = mutex->heldUpRequests.back();
+		mutex->heldUpRequests.pop_back();
+		communicator->sendMessage(retMessage);	
+	
+	}	
+	
+	delete retMessage;	
+	mutex->requesting = false;
+	
+	
+	// Create new agree vector.
+	communicator->getCommunicationMutex()->lock();
+	mutex->agreeVector = new vector<bool>(communicator->activePeers.size(), false);
+	for(unsigned int i = 0; i < communicator->activePeers.size(); i++)
+	{
+		(* mutex->agreeVector)[i] = !communicator->activePeers[i];
+	}
+	communicator->getCommunicationMutex()->unlock();
+		
+	mutex->operationMutex.unlock();
+	delete mutex->criticalSectionConditionLock;
+	
+	this->log(INFO,"(" + to_string(mutex->id) + ") Unlocked.");
+		
+	
 }
