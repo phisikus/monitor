@@ -180,7 +180,7 @@ void Monitor::communicationLoop()
 						if((m->previousReturn != NULL) && (m->previousReturn->type == DATA))
 						{
 							// Copy data packet from Mutex, received earlier and send it further.
-							void *packet = new char[m->previousReturn->getArraySize()];						
+							char *packet = new char[m->previousReturn->getArraySize()];						
 							Message *dataMessage = new Message((MessageDTO *) packet);
 							dataMessage->recipientId = msg->senderId;
 							dataMessage->referenceId = msg->referenceId;
