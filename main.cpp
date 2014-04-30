@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 	Mutex *m = new Mutex(1);			
 	
 	monitor->lock(m);
-	/*char x[] = "Hi";
+	/*char x[3] = "Hi";
 	m->setDataForReturn(x,sizeof(x));*/
 	monitor->log(INFO,"CS");
 	monitor->unlock(m);	
