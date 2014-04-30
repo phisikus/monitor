@@ -52,7 +52,7 @@ void Communicator::sendMessage(Message *msg)
 		this->clock++;
 		msg->senderId = this->processId;
 		msg->clock = this->clock;
-		this->log(TRACE,"Sending message " + toString(msg->type) + " to " + to_string(msg->recipientId) + " (size = " + to_string(msg->getArraySize()) + " )");		
+		this->log(TRACE,"Sending message " + toString(msg->type) + " to " + to_string(msg->recipientId) + " (size = " + to_string(msg->getArraySize()) + ", clock = " + to_string(msg->clock) + " )");		
 		MPI_Isend(msg->getArray(), msg->getArraySize(), MPI_CHAR, msg->recipientId, 0, MPI_COMM_WORLD, new MPI_Request());		
 	}
 	communicationMutex.unlock();
@@ -92,7 +92,7 @@ Message* Communicator::recvMessage()
 	Message *msg = new Message(packet);	
     this->clock = max(this->clock, msg->clock + 1);    
     communicationMutex.unlock();
-    this->log(TRACE, "Received: " + toString(msg->type) + " from: " + to_string(msg->senderId));							
+    this->log(TRACE, "Received: " + toString(msg->type) + " from: " + to_string(msg->senderId) + " clock = " + to_string(msg->clock));							
 		
     return msg;
 }
