@@ -16,6 +16,9 @@ Mutex::Mutex(int id)
 	pair<int, Mutex *> *p = new pair<int, Mutex *>;
 	p->first = id;
 	p->second = this;
+	
+	this->criticalSectionConditionLock = new unique_lock<std::mutex>(this->criticalSectionConditionMutex);		
+
 	existingMutexes->push_back(*p);
 	
 }
@@ -58,10 +61,7 @@ long Mutex::getDataSize()
 void Mutex::setDataForReturn(void *data, long size)
 {
 	if(this->previousReturn != NULL)
-	{
-		/*if((this->previousReturn->hasData) && (this->previousReturn->dataSize > 0))
-			delete this->previousReturn->data;*/
-			
+	{	
 		delete this->previousReturn;		
 	}
 	

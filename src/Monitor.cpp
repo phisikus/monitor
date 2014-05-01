@@ -37,14 +37,6 @@ void Monitor::init(int argc, char **argv)
 	this->communicationThread = NULL;
 	this->communicator->init(argc, argv);
 	
-	// send START
-	Message *msg = new Message();
-	msg->type = START;
-	msg->data = this->communicator->processName;
-	msg->dataSize = strlen(this->communicator->processName);
-	communicator->sendBroadcast(msg);
-	delete msg;
-	
 	this->communicationThread = new thread(&Monitor::communicationLoop,this);	
 		
 	this->log(TRACE, "Monitor: Communication loop started.");
@@ -53,12 +45,8 @@ void Monitor::init(int argc, char **argv)
 }
 
 void Monitor::finalize()
-{		
-	Message *msg = new Message();
-	msg->type = QUIT;
-	communicator->sendBroadcast(msg);
-	
-	communicator->close();
+{	
+	communicator->close();	
 	this->log(TRACE, "Monitor: MPI finalized. ");
 }
 
@@ -75,11 +63,7 @@ void Monitor::communicationLoop()
 				
 		switch(msg->type)
 		{
-			case START:
-				// Nothing to do here...
-				delete msg;
-				break;
-				
+						
 			case REQUEST:
 				{
 					Mutex *m = Mutex::getMutex(msg->referenceId);
@@ -99,7 +83,7 @@ void Monitor::communicationLoop()
 							{
 								if((m->requestClock == msg->clock) && (communicator->processId < msg->senderId))
 								{
-										m->heldUpRequests.push_back(msg->senderId);																										
+									m->heldUpRequests.push_back(msg->senderId);																										
 								}
 								else
 								{
@@ -136,25 +120,6 @@ void Monitor::communicationLoop()
 				}
 				break;
 				
-			case QUIT:				
-				communicator->getCommunicationMutex()->lock();
-				communicator->activePeers[msg->senderId] = false;				
-				communicator->getCommunicationMutex()->unlock();
-				for (std::list<Mutex*>::iterator it = Mutex::getMutexes()->begin(); it != Mutex::getMutexes()->end(); ++it)
-				{					
-					(*it)->operationMutex.lock();
-					if((*it)->requesting)				
-						(*(*it)->agreeVector)[msg->senderId] = true;					
-					(*it)->operationMutex.unlock();														
-					
-					// check if conditions to enter C.S. were met and signal conditional variable.
-					enterCriticalSection(*it);
-				}
-				delete msg;
-							
-				
-				break;
-				
 			case RETURN:				
 				{
 					Mutex *m = Mutex::getMutex(msg->referenceId);
@@ -164,10 +129,7 @@ void Monitor::communicationLoop()
 						(*(m->agreeVector))[msg->senderId] = true;
 						
 						if(m->previousReturn != NULL)
-						{
-							if(m->previousReturn->data != NULL)
-								delete m->previousReturn->data;
-							
+						{							
 							delete m->previousReturn;
 						}
 						
@@ -315,7 +277,11 @@ void Monitor::lock(Mutex *mutex)
 	
 	// Determine which other processes should agree before we can get in (all except those who sent QUIT)
 	if(mutex->agreeVector != NULL)
+	{
 		delete mutex->agreeVector;
+		mutex->agreeVector = NULL;
+	}
+	
 	communicator->getCommunicationMutex()->lock();
 	mutex->agreeVector = new vector<bool>(communicator->activePeers.size(), false);
 	for(unsigned int i = 0; i < communicator->activePeers.size(); i++)
@@ -339,8 +305,6 @@ void Monitor::lock(Mutex *mutex)
 
 	
 	// Wait for conditions to be met.
-	mutex->criticalSectionConditionLock = new unique_lock<std::mutex>(mutex->criticalSectionConditionMutex);	
-	
 	mutex->operationMutex.unlock();
 	
 	while(mutex->requesting)
@@ -381,6 +345,7 @@ void Monitor::unlock(Mutex *mutex)
 	
 	delete retMessage;	
 	mutex->requesting = false;
+	mutex->locked = false;
 	
 	
 	// Create new agree vector.
@@ -393,7 +358,6 @@ void Monitor::unlock(Mutex *mutex)
 	communicator->getCommunicationMutex()->unlock();
 		
 	mutex->operationMutex.unlock();
-	delete mutex->criticalSectionConditionLock;
 	
 	this->log(INFO,"(" + to_string(mutex->id) + ") Unlocked.");
 		
