@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 		monitor->unlock(m);			
 	}	
 	
-	//while(true);
+	while(true);
 	
 	monitor->finalize();	
 	delete monitor;
