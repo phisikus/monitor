@@ -33,7 +33,9 @@ void Communicator::log(LogLevel level, string text)
 		{
 			message += "[";
 			message += this->processName;
-			message += " " + to_string(this->processId) + "] ";
+			message += " " + to_string(this->processId);
+			message += " ; clock = " + to_string(this->clock) + " ";
+			message += "] ";
 		}
 		message += text;
 		cout << message << endl;				

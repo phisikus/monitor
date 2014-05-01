@@ -124,6 +124,10 @@ void Monitor::communicationLoop()
 								communicator->sendMessage(agreeReply);
 								delete agreeReply;
 							}
+							else
+							{
+								m->heldUpRequests.push_back(msg->senderId);	
+							}
 							
 						}
 						m->operationMutex.unlock();
@@ -368,13 +372,12 @@ void Monitor::unlock(Mutex *mutex)
 	}	
 	
 	// send Messages to all held up processes
-	for(unsigned int i = 0; i < mutex->heldUpRequests.size(); i++)
-	{		
-		retMessage->recipientId = mutex->heldUpRequests.back();
-		mutex->heldUpRequests.pop_back();
+	for (std::list<int>::const_iterator it = mutex->heldUpRequests.begin(), end = mutex->heldUpRequests.end(); it != end; ++it)
+	{
+		retMessage->recipientId = (*it);
 		communicator->sendMessage(retMessage);	
-	
 	}	
+	mutex->heldUpRequests.clear();
 	
 	delete retMessage;	
 	mutex->requesting = false;
