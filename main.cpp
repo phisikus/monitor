@@ -19,12 +19,10 @@ int main(int argc, char *argv[])
 		
 		monitor->log(INFO,"CS: " + to_string(*y));
 		(*y) *= 2;		
-		monitor->unlock(m);
+		monitor->unlock(m);			
 	}	
 	
-	while(true)
-	{
-	};
+	//while(true);
 	
 	monitor->finalize();	
 	delete monitor;
