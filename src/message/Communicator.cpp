@@ -60,11 +60,28 @@ void Communicator::sendMessage(Message *msg)
 
 void Communicator::sendBroadcast(Message *msg)
 {
+	
+	if((!initialized) && (msg == NULL)) return;	
+	
+	communicationMutex.lock();		
+	this->clock++;
+	msg->clock = this->clock;
+	msg->senderId = this->processId;
+	
+	
 	for(unsigned int i = 0; i < activePeers.size(); i++)
 	{
+			
 		msg->recipientId = i;		
-		sendMessage(msg);		
+		
+		if(msg->recipientId == this->processId)
+			continue;
+			
+		this->log(TRACE,"Sending message " + toString(msg->type) + " to " + to_string(msg->recipientId) + " (size = " + to_string(msg->getArraySize()) + ", clock = " + to_string(msg->clock) + " )");		
+		MPI_Isend(msg->getArray(), msg->getArraySize(), MPI_CHAR, msg->recipientId, 0, MPI_COMM_WORLD, new MPI_Request());		
+		
 	}
+	communicationMutex.unlock();		
 }
 
 void Communicator::waitForMessage()
@@ -92,7 +109,7 @@ Message* Communicator::recvMessage()
 	Message *msg = new Message(packet);	
     this->clock = max(this->clock, msg->clock + 1);    
     communicationMutex.unlock();
-    this->log(TRACE, "Received: " + toString(msg->type) + " from: " + to_string(msg->senderId) + " clock = " + to_string(msg->clock));							
+    this->log(TRACE, "Received: " + toString(msg->type) + " from " + to_string(msg->senderId) + " (size = " + to_string(msg->getArraySize()) + ", clock = " + to_string(msg->clock) + " )");							
 		
     return msg;
 }

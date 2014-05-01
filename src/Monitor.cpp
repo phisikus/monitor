@@ -115,12 +115,15 @@ void Monitor::communicationLoop()
 						}
 						else
 						{
-							Message *agreeReply = new Message();
-							agreeReply->type = AGREE;
-							agreeReply->referenceId = msg->referenceId;
-							agreeReply->recipientId = msg->senderId;
-							communicator->sendMessage(agreeReply);
-							delete agreeReply;
+							if(!m->locked)
+							{
+								Message *agreeReply = new Message();
+								agreeReply->type = AGREE;
+								agreeReply->referenceId = msg->referenceId;
+								agreeReply->recipientId = msg->senderId;
+								communicator->sendMessage(agreeReply);
+								delete agreeReply;
+							}
 							
 						}
 						m->operationMutex.unlock();
@@ -180,10 +183,8 @@ void Monitor::communicationLoop()
 						if((m->previousReturn != NULL) && (m->previousReturn->type == DATA))
 						{
 							// Copy data packet from Mutex, received earlier and send it further.
-							char *packet = new char[m->previousReturn->getArraySize()];						
-							Message *dataMessage = new Message((MessageDTO *) packet);
+							Message *dataMessage = new Message(m->previousReturn);
 							dataMessage->recipientId = msg->senderId;
-							dataMessage->referenceId = msg->referenceId;
 							communicator->sendMessage(dataMessage);
 							delete dataMessage;
 						}
@@ -328,6 +329,10 @@ void Monitor::lock(Mutex *mutex)
 	// save the time of request
 	mutex->requestClock = rm->clock;
 	delete rm;
+
+	// Set status.
+	mutex->locked = true;
+
 	
 	// Wait for conditions to be met.
 	mutex->criticalSectionConditionLock = new unique_lock<std::mutex>(mutex->criticalSectionConditionMutex);	
@@ -337,13 +342,20 @@ void Monitor::lock(Mutex *mutex)
 	while(mutex->requesting)
 		mutex->criticalSectionCondition.wait((* mutex->criticalSectionConditionLock));	
 		
+	
 	this->log(INFO,"(" + to_string(mutex->id) + ") Locked.");
 		
 }
 
 void Monitor::unlock(Mutex *mutex)
-{
+{	
 	mutex->operationMutex.lock();
+	
+	if(!mutex->locked)
+	{
+		mutex->operationMutex.unlock();
+		return;
+	}
 	
 	Message *retMessage = new Message();
 	retMessage->type = RETURN;

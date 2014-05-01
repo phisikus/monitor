@@ -55,14 +55,14 @@ long Mutex::getDataSize()
 }
 
 
-void Mutex::setDataForReturn(char *data, long size)
+void Mutex::setDataForReturn(void *data, long size)
 {
 	if(this->previousReturn != NULL)
 	{
-		if(this->previousReturn->data != NULL)
-			delete this->previousReturn->data;
-		
-		delete this->previousReturn;
+		/*if((this->previousReturn->hasData) && (this->previousReturn->dataSize > 0))
+			delete this->previousReturn->data;*/
+			
+		delete this->previousReturn;		
 	}
 	
 	Message *m = new Message();
@@ -70,7 +70,7 @@ void Mutex::setDataForReturn(char *data, long size)
 	m->referenceId = this->id;
 	m->hasData = true;
 	m->dataSize = size;
-	m->data = data;
+	m->data = (char*) data;
 	this->previousReturn = m;
 	
 };

@@ -21,6 +21,19 @@ Message::Message(MessageDTO *dto)
 	memcpy(this->data, dto->data, this->dataSize);
 };
 
+Message::Message(Message *msg)
+{	
+	this->clock = msg->clock;
+	this->senderId = msg->senderId;
+	this->recipientId = msg->recipientId;
+	this->type = msg->type;
+	this->referenceId = msg->referenceId;
+	this->hasData = msg->hasData;
+	this->dataSize = msg->dataSize;	
+	this->data = (char*) malloc(this->dataSize);
+	memcpy(this->data, msg->data, this->dataSize);
+};
+
 void* Message::getArray()
 {	
 	MessageDTO *m = (MessageDTO*) malloc(this->getArraySize());

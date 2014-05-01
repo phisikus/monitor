@@ -25,7 +25,7 @@ class Message
 		long referenceId;
 		bool hasData = false;
 		long dataSize = 0;
-		char *data;		
+		char *data = NULL;
 
 		bool operator<(Message& b);
 		bool cmp(Message *a, Message *b);
@@ -33,6 +33,7 @@ class Message
 		long getArraySize();
 
 		Message();
+		Message(Message *msg);
 		Message(MessageDTO *dto);		
 };
 

@@ -14,6 +14,7 @@ class Mutex
 	public:
 		int id; // Mutex ID
 		bool requesting = false; // It tells if this mutex is locked and waiting for C.S.
+		bool locked = false;
 		long requestClock = 0; // timestamp to reject AGREE packets that came late for previous request
 		vector<bool> *agreeVector; // it will be filled with negation of activePeers vector. If other agrees we can enter C. S.
 		list<int> heldUpRequests; // processes that sent REQUEST but should wait for their turn - we will send AGREE after unlock()
@@ -30,7 +31,7 @@ class Mutex
 		bool agreeVectorTrue();
 		void * getData();		
 		long getDataSize();		
-		void setDataForReturn(char *data, long size); // Create new previousReturn Message of type DATA with given data
+		void setDataForReturn(void *data, long size); // Create new previousReturn Message of type DATA with given data
 
 	private:
 		static list<pair<int,Mutex*>> *existingMutexes;
