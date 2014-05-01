@@ -11,25 +11,25 @@ using namespace std;
 
 class Monitor
 {
-	public:
-		Communicator *communicator;
+public:
+    Communicator *communicator;
 
-		Monitor();
-		Monitor(int argc, char **argv);
-		~Monitor();
-		void log(LogLevel level, string text);
-		void lock(Mutex *mutex);
-		void unlock(Mutex *mutex);		
-		void finalize();
+    Monitor();
+    Monitor(int argc, char **argv);
+    ~Monitor();
+    void log(LogLevel level, string text);
+    void lock(Mutex *mutex);
+    void unlock(Mutex *mutex);
+    void finalize();
 
-	private:
-		thread *communicationThread; 
+private:
+    thread *communicationThread;
 
-		void init(int argc, char **argv);
-		void communicationLoop();
-		void enterCriticalSection(Mutex *m);
-		
-		
+    void init(int argc, char **argv);
+    void communicationLoop();
+    void enterCriticalSection(Mutex *m);
 
 
-};	
+
+
+};
