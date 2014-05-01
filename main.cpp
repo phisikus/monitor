@@ -22,7 +22,8 @@ int main(int argc, char *argv[])
 		monitor->unlock(m);
 	}	
 	
-	while(true);
+	mutex x;
+	x.lock();
 	
 	monitor->finalize();	
 	delete monitor;

@@ -11,7 +11,7 @@
 #define INCLUDE_MESSAGE_TYPE_HPP
 #include <iostream>
 
-enum MessageType { START = 0, REQUEST, AGREE, RETURN, REQUEST_DATA, DATA, QUIT };
+enum MessageType { REQUEST, AGREE, RETURN, REQUEST_DATA, DATA};
 
 inline std::string toString(MessageType v)
 {

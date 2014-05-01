@@ -156,9 +156,9 @@ void Monitor::communicationLoop()
 						}
 						m->operationMutex.unlock();
 					}					
-					delete msg;
-					break;
+					delete msg;					
 				}	
+				break;
 			case DATA:
 				{
 					Mutex *m = Mutex::getMutex(msg->referenceId);
