@@ -142,6 +142,7 @@ void Monitor::communicationLoop()
 			
 			case REQUEST_DATA:
 				{
+					
 					Mutex *m = Mutex::getMutex(msg->referenceId);
 					if(m != NULL)
 					{
@@ -229,8 +230,11 @@ void Monitor::enterCriticalSection(Mutex *m)
 		}
 		else
 		{
+			
 			if(m->previousReturn->type == RETURN)
 			{
+			
+			
 				if(m->previousReturn->hasData)
 				{
 					// Ask for data from previous process that entered.
@@ -240,6 +244,7 @@ void Monitor::enterCriticalSection(Mutex *m)
 					rd->referenceId = m->previousReturn->referenceId;
 					communicator->sendMessage(rd);					
 					delete rd;
+					
 				}
 				else
 				{
@@ -253,6 +258,7 @@ void Monitor::enterCriticalSection(Mutex *m)
 			
 			if(m->previousReturn->type == DATA)
 			{
+				
 				m->requesting = false;
 				fill(m->agreeVector->begin(), m->agreeVector->end(), false);									
 				m->criticalSectionCondition.notify_one();	

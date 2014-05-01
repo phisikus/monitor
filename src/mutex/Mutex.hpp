@@ -19,7 +19,7 @@ class Mutex
 		vector<bool> *agreeVector; // it will be filled with negation of activePeers vector. If other agrees we can enter C. S.
 		list<int> heldUpRequests; // processes that sent REQUEST but should wait for their turn - we will send AGREE after unlock()
 		mutex operationMutex; // local mutex that will block communicationLoop for this distributed Mutex during lock/unlock.		
-		Message *previousReturn; // This field will contain most recent RETURN message (based on clock) or DATA. When we enter CS it will be possible to get current data and save it to this variable.
+		Message *previousReturn = NULL; // This field will contain most recent RETURN message (based on clock) or DATA. When we enter CS it will be possible to get current data and save it to this variable.
 		
 		condition_variable criticalSectionCondition; // On this variable lock() will wait till all agrees are collected by communicationLoop and DATA packet is send if needed
 		unique_lock<mutex> *criticalSectionConditionLock;

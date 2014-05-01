@@ -8,4 +8,4 @@ compile:
 	mpic++ src/mutex/Mutex.* src/message/Message.* src/message/Communicator.* src/Monitor.* main.cpp -o ./bin/monitor -lpthread -Wall -std=c++0x
 
 run:
-	mpirun -n 2 ./bin/monitor	
+	mpirun -n 8 ./bin/monitor	

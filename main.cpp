@@ -18,12 +18,13 @@ int main(int argc, char *argv[])
 		int *y = (int *) m->getData();
 		
 		monitor->log(INFO,"CS: " + to_string(*y));
-		(*y) *= 2;
+		(*y) *= 2;		
 		monitor->unlock(m);
 	}	
 	
-	mutex x;
-	x.lock();
+	while(true)
+	{
+	};
 	
 	monitor->finalize();	
 	delete monitor;
