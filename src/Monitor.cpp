@@ -276,6 +276,8 @@ void Monitor::enterCriticalSection(Mutex *m)
 
 void Monitor::lock(Mutex *mutex) 
 {
+	// local mutex for thread safety
+	mutex->localMutex.lock();
 	
 	// Set mutex to "requesting" state.
 	mutex->operationMutex.lock();
@@ -366,6 +368,8 @@ void Monitor::unlock(Mutex *mutex)
 	mutex->operationMutex.unlock();
 	
 	this->log(INFO,"(" + to_string(mutex->id) + ") Unlocked.");
+	
+	mutex->localMutex.unlock();
 		
 	
 }
