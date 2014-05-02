@@ -15,9 +15,7 @@ Mutex::Mutex(int id)
 
     pair<int, Mutex *> *p = new pair<int, Mutex *>;
     p->first = id;
-    p->second = this;
-
-    this->criticalSectionConditionLock = new unique_lock<std::mutex>(this->criticalSectionConditionMutex);
+    p->second = this;    
 
     existingMutexes->push_back(*p);
 

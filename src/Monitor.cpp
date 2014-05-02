@@ -224,7 +224,10 @@ void Monitor::enterCriticalSection(Mutex *m)
             // we are the first ones entering this section...
             m->requesting = false;
             fill(m->agreeVector->begin(), m->agreeVector->end(), false);
-            m->criticalSectionCondition.notify_one();
+			{
+				unique_lock<std::mutex> cLock(m->criticalSectionConditionMutex);            
+				m->criticalSectionCondition.notify_one();
+			}                                   
             m->operationMutex.unlock();
             return;
         }
@@ -249,9 +252,13 @@ void Monitor::enterCriticalSection(Mutex *m)
                 else
                 {
                     m->requesting = false;
-                    fill(m->agreeVector->begin(), m->agreeVector->end(), false);
-                    m->criticalSectionCondition.notify_one();
-                    m->operationMutex.unlock();
+                    fill(m->agreeVector->begin(), m->agreeVector->end(), false);                    
+					{
+						// !!! this lock will only exist in this bracket scope and will be unlocked after that
+						unique_lock<std::mutex> cLock(m->criticalSectionConditionMutex); 
+						m->criticalSectionCondition.notify_one();
+					}                                   
+				    m->operationMutex.unlock();
                     return;
                 }
             }
@@ -260,8 +267,11 @@ void Monitor::enterCriticalSection(Mutex *m)
             {
 
                 m->requesting = false;
-                fill(m->agreeVector->begin(), m->agreeVector->end(), false);
-                m->criticalSectionCondition.notify_one();
+                fill(m->agreeVector->begin(), m->agreeVector->end(), false);                
+                {
+					unique_lock<std::mutex> cLock(m->criticalSectionConditionMutex);            
+					m->criticalSectionCondition.notify_one();
+				}
                 m->operationMutex.unlock();
                 return;
             }
@@ -313,11 +323,14 @@ void Monitor::lock(Mutex *mutex)
 
 
     // Wait for conditions to be met.
-    mutex->operationMutex.unlock();
+    {
+		unique_lock<std::mutex> cLock(mutex->criticalSectionConditionMutex);
 
-    while(mutex->requesting)
-        mutex->criticalSectionCondition.wait((* mutex->criticalSectionConditionLock));
+		mutex->operationMutex.unlock();
 
+		while(mutex->requesting)
+			mutex->criticalSectionCondition.wait(cLock);				
+	}
 
     this->log(INFO,"(" + to_string(mutex->id) + ") Locked.");
 
