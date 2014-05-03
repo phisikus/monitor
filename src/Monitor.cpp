@@ -200,6 +200,28 @@ void Monitor::communicationLoop()
         }
 
         break;
+        
+        case WAIT:
+        {
+					
+			
+		}
+		break;
+        
+        case WAIT_RETURN:
+        {
+			
+		}
+		break;
+				
+        case SIGNAL:
+        {
+			
+		}
+		break;
+		
+		
+		
 
         default:
             break;
