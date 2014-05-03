@@ -203,25 +203,28 @@ void Monitor::communicationLoop()
         
         case WAIT:
         {
-					
-			
+			ConditionVariable *cv = ConditionVariable::getConditionVariable(msg->referenceId);
+			unique_lock<mutex> l(cv->operationMutex);
+			cv->waitingProcesses.push_back(msg->senderId);					
 		}
 		break;
         
         case WAIT_RETURN:
         {
-			
+			ConditionVariable *cv = ConditionVariable::getConditionVariable(msg->referenceId);
+			unique_lock<mutex> l(cv->operationMutex);
+			cv->waitingProcesses.remove(msg->senderId);			
 		}
 		break;
 				
         case SIGNAL:
         {
-			
+			ConditionVariable *cv = ConditionVariable::getConditionVariable(msg->referenceId);
+			unique_lock<mutex> l(cv->operationMutex);
+			cv->waiting = false;
+			cv->cv.notify_one();					
 		}
-		break;
-		
-		
-		
+		break;					
 
         default:
             break;
@@ -409,3 +412,42 @@ void Monitor::unlock(Mutex *mutex)
 
 }
 
+
+void Monitor::wait(ConditionVariable *cv)
+{
+	unique_lock<mutex> l(cv->operationMutex);
+	cv->waiting = true;
+	while(cv->waiting)
+		cv->cv.wait(l);
+	
+	Message *ret = new Message();
+	ret->referenceId = cv->id;
+	ret->type =	WAIT_RETURN;
+	communicator->sendBroadcast(ret);	
+	delete ret;
+}
+
+
+
+void Monitor::signalAll(ConditionVariable *cv)
+{
+	// TODO mutex
+	// TODO odbiorcy z listy
+	Message *sgn = new Message();
+	sgn->referenceId = cv->id;
+	sgn->type =	SIGNAL;	
+	communicator->sendBroadcast(sgn);	
+	delete sgn;
+}
+
+
+void Monitor::signalOne(ConditionVariable *cv)
+{
+	// TODO - zablokować mutex (po co mają być dostępne wait+signal jednocześnie)
+	// TODO - odbiorca z listy
+	Message *sgn = new Message();
+	sgn->referenceId = cv->id;
+	sgn->type =	SIGNAL;		
+	communicator->sendMessage(sgn);	
+	delete sgn;
+}

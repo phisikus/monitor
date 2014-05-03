@@ -10,7 +10,7 @@ class ConditionVariable
 {
 	public:
 		int id;
-		mutex localMutex;
+		mutex operationMutex;
 		condition_variable cv;
 		bool waiting = false;
 		list<int> waitingProcesses;

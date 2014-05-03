@@ -1,6 +1,7 @@
 #include "mutex/Mutex.hpp"
 #include "message/Message.hpp"
 #include "message/Communicator.hpp"
+#include "condition/ConditionVariable.hpp"
 #include <string>
 #include <thread>
 #include <mutex>
@@ -20,6 +21,9 @@ public:
     void log(LogLevel level, string text);
     void lock(Mutex *mutex);
     void unlock(Mutex *mutex);
+    void wait(ConditionVariable *cv);
+    void signalOne(ConditionVariable *cv);
+    void signalAll(ConditionVariable *cv);
     void finalize();
 
 private:
