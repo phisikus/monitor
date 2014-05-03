@@ -415,16 +415,22 @@ void Monitor::unlock(Mutex *mutex)
 
 void Monitor::wait(ConditionVariable *cv)
 {
+	
 	unique_lock<mutex> l(cv->operationMutex);
 	cv->waiting = true;
+	
+	this->log(INFO,"(" + to_string(cv->id) + ") waiting... ");
 	while(cv->waiting)
 		cv->cv.wait(l);
+	
+	this->log(INFO,"(" + to_string(cv->id) + ") received signal. ");
 	
 	Message *ret = new Message();
 	ret->referenceId = cv->id;
 	ret->type =	WAIT_RETURN;
 	communicator->sendBroadcast(ret);	
 	delete ret;
+		
 }
 
 
@@ -438,7 +444,7 @@ void Monitor::signalAll(ConditionVariable *cv)
 	for(int i : cv->waitingProcesses)
 	{			
 		sgn->recipientId = i;
-		communicator->sendBroadcast(sgn);	
+		communicator->sendMessage(sgn);	
 	}
 	delete sgn;
 }

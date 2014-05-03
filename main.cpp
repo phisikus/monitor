@@ -2,9 +2,11 @@
 #include <unistd.h>
 #include "src/Monitor.hpp"
 
-int main(int argc, char *argv[])
+
+void tryPowerOfTwo()
 {
-    Monitor *monitor = new Monitor();
+	
+	Monitor *monitor = new Monitor();
 
     Mutex *m = new Mutex(1);
     for(unsigned int i = 0; i < 2 ; i++)
@@ -22,8 +24,31 @@ int main(int argc, char *argv[])
         monitor->unlock(m);
     }
 
-    while(true);
+}
 
+
+void tryCondition()
+{
+	Monitor *monitor = new Monitor();
+    Mutex *m = new Mutex(1);
+    ConditionVariable *cv = new ConditionVariable(1);
+    
+    if(monitor->communicator->processId % 2)
+    {
+		m->lock();		
+	}    
+	else
+	{
+				
+	}
+	
+}
+
+int main(int argc, char *argv[])
+{
+    //tryPowerOfTwo();
+    tryCondition();
+    while(true);
     monitor->finalize();
     delete monitor;
     monitor = NULL;
