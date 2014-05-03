@@ -21,7 +21,7 @@ public:
     void log(LogLevel level, string text);
     void lock(Mutex *mutex);
     void unlock(Mutex *mutex);
-    void wait(ConditionVariable *cv);
+    void wait(ConditionVariable *cv, Mutex *m);
     void signalOne(ConditionVariable *cv);
     void signalAll(ConditionVariable *cv);
     void finalize();
