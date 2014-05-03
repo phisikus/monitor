@@ -431,23 +431,29 @@ void Monitor::wait(ConditionVariable *cv)
 
 void Monitor::signalAll(ConditionVariable *cv)
 {
-	// TODO mutex
-	// TODO odbiorcy z listy
+	unique_lock<mutex> l(cv->operationMutex);
 	Message *sgn = new Message();
 	sgn->referenceId = cv->id;
 	sgn->type =	SIGNAL;	
-	communicator->sendBroadcast(sgn);	
+	for(int i : cv->waitingProcesses)
+	{			
+		sgn->recipientId = i;
+		communicator->sendBroadcast(sgn);	
+	}
 	delete sgn;
 }
 
 
 void Monitor::signalOne(ConditionVariable *cv)
 {
-	// TODO - zablokować mutex (po co mają być dostępne wait+signal jednocześnie)
-	// TODO - odbiorca z listy
+	unique_lock<mutex> l(cv->operationMutex);
 	Message *sgn = new Message();
 	sgn->referenceId = cv->id;
 	sgn->type =	SIGNAL;		
-	communicator->sendMessage(sgn);	
+	if(cv->waitingProcesses.size() > 0)
+	{
+		sgn->recipientId = cv->waitingProcesses.front();
+		communicator->sendMessage(sgn);	
+	}
 	delete sgn;
 }
