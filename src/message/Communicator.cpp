@@ -1,5 +1,6 @@
 #include "Communicator.hpp"
 
+
 void Communicator::init(int argc, char **argv)
 {
 	this->processName = new char[MPI_MAX_PROCESSOR_NAME];
@@ -15,9 +16,9 @@ void Communicator::init(int argc, char **argv)
 void Communicator::close()
 {
 	if(this->initialized)
-	{
-		communicationMutex.lock();
+	{	
 		this->initialized = false;
+		MPI_Barrier(MPI_COMM_WORLD);
 		MPI::Finalize();
 	}
 }
@@ -49,7 +50,8 @@ void Communicator::sendMessage(Message *msg)
 	if(!initialized) return;
 
 	communicationMutex.lock();
-	if((msg != NULL) && (this->activePeers[msg->recipientId]))
+	//if((msg != NULL) && (this->activePeers[msg->recipientId]))
+	if(msg != NULL)
 	{
 		this->clock++;
 		msg->senderId = this->processId;

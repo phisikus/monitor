@@ -46,6 +46,13 @@ void Monitor::init(int argc, char **argv)
 
 void Monitor::finalize()
 {
+	Message *q = new Message();
+	q->type = QUIT;
+	q->recipientId = communicator->processId;
+	communicator->sendMessage(q);
+	delete q;
+
+	this->communicationThread->join();	
 	communicator->close();
 	this->log(TRACE, "Monitor: MPI finalized. ");
 }
@@ -226,6 +233,12 @@ void Monitor::communicationLoop()
 					cv->cv.notify_one();					
 				}
 				break;					
+
+			case QUIT:
+				{
+					break;
+				}
+
 
 			default:
 				break;

@@ -22,8 +22,6 @@ void tryPowerOfTwo()
 		(*y) *= 2;
 		monitor->unlock(m);
 	}
-
-	while(true);
 	monitor->finalize();
 	delete monitor;
 	monitor = NULL;
@@ -39,22 +37,23 @@ void tryCondition()
 	Monitor *monitor = new Monitor();
 	
 
-	if(monitor->communicator->processId  == 0)
+	if(monitor->communicator->processId  > 0)
 	{
 		monitor->lock(m);		
 		monitor->wait(cv, m);	
 		monitor->log(INFO,"I left wait, now i will signal in 2 seconds.");
+		usleep(2000000);
 		monitor->signalOne(cv);
 		monitor->unlock(m);
 	}    
 	else
 	{
+		usleep(5000000);
 		monitor->lock(m);		
 		monitor->signalOne(cv);
 		monitor->unlock(m);		
 	}
 
-	while(true);
 	monitor->finalize();
 	delete monitor;
 	monitor = NULL;
@@ -64,7 +63,7 @@ void tryCondition()
 
 int main(int argc, char *argv[])
 {
-	//tryPowerOfTwo();
-	tryCondition();
+	tryPowerOfTwo();
+	//tryCondition();
 	return 0;
 }

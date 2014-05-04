@@ -11,7 +11,7 @@
 #define INCLUDE_MESSAGE_TYPE_HPP
 #include <iostream>
 
-enum MessageType { REQUEST, AGREE, RETURN, REQUEST_DATA, DATA, WAIT, WAIT_RETURN, SIGNAL};
+enum MessageType { REQUEST, AGREE, RETURN, REQUEST_DATA, DATA, WAIT, WAIT_RETURN, SIGNAL, QUIT};
 
 inline std::string toString(MessageType v)
 {
@@ -33,6 +33,8 @@ inline std::string toString(MessageType v)
 			return "WAIT_RETURN";
 		case SIGNAL:
 			return "SIGNAL";
+		case QUIT:
+			return "QUIT";
 
 		default:
 			return "[unknown]";
