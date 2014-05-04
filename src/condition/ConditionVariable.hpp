@@ -20,6 +20,7 @@ class ConditionVariable
 		static list<ConditionVariable *> * getConditionVariables();
 
 	private:
+		static mutex conditionListMutex;
 		static list<pair<int,ConditionVariable*>> *existingConditionVariables;
 
 

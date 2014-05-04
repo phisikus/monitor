@@ -43,12 +43,16 @@ void tryCondition()
 	{
 		monitor->lock(m);		
 		monitor->wait(cv, m);	
+		monitor->log(INFO,"I left wait, now i will signal in 2 seconds.");
+		usleep(4000000);
+		monitor->signalOne(cv);
 		monitor->unlock(m);
 	}    
 	else
 	{
-		usleep(500000);
-		monitor->signalOne(cv);				
+		monitor->lock(m);		
+		monitor->signalOne(cv);
+		monitor->unlock(m);		
 	}
 
 	while(true);
@@ -61,7 +65,7 @@ void tryCondition()
 
 int main(int argc, char *argv[])
 {
-	tryPowerOfTwo();
-	//tryCondition();
+	//tryPowerOfTwo();
+	tryCondition();
 	return 0;
 }
