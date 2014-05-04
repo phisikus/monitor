@@ -11,23 +11,23 @@ enum LogLevel { TRACE, INFO, ERROR };
 
 class Communicator
 {
-public:
-    int processId;
-    char *processName;
-    int processCount;
-    vector<bool> activePeers;
-    long clock = 0;
+	public:
+		int processId;
+		char *processName;
+		int processCount;
+		vector<bool> activePeers;
+		long clock = 0;
 
-    bool initialized = false;
-    void init(int argc, char **argv);
-    void sendMessage(Message *msg);
-    void sendBroadcast(Message *msg);
-    void waitForMessage();
-    Message* recvMessage();
-    void log(LogLevel level, string text);
-    void close();
+		bool initialized = false;
+		void init(int argc, char **argv);
+		void sendMessage(Message *msg);
+		void sendBroadcast(Message *msg);
+		void waitForMessage();
+		Message* recvMessage();
+		void log(LogLevel level, string text);
+		void close();
 
-    mutex * getCommunicationMutex();
-private:
-    mutex communicationMutex;
+		mutex * getCommunicationMutex();
+	private:
+		mutex communicationMutex;
 };

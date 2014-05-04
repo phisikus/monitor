@@ -15,28 +15,28 @@ enum MessageType { REQUEST, AGREE, RETURN, REQUEST_DATA, DATA, WAIT, WAIT_RETURN
 
 inline std::string toString(MessageType v)
 {
-    switch (v)
-    {
-    case REQUEST:
-        return "REQUEST";
-    case AGREE:
-        return "AGREE";
-    case RETURN:
-        return "RETURN";
-    case REQUEST_DATA:
-        return "REQUEST_DATA";
-    case DATA:
-        return "DATA";
-    case WAIT:
-		return "WAIT";		
-    case WAIT_RETURN:
-        return "WAIT_RETURN";
-    case SIGNAL:
-        return "SIGNAL";
+	switch (v)
+	{
+		case REQUEST:
+			return "REQUEST";
+		case AGREE:
+			return "AGREE";
+		case RETURN:
+			return "RETURN";
+		case REQUEST_DATA:
+			return "REQUEST_DATA";
+		case DATA:
+			return "DATA";
+		case WAIT:
+			return "WAIT";		
+		case WAIT_RETURN:
+			return "WAIT_RETURN";
+		case SIGNAL:
+			return "SIGNAL";
 
-    default:
-        return "[unknown]";
-    }
+		default:
+			return "[unknown]";
+	}
 }
 
 #endif
