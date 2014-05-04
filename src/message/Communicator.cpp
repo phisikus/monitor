@@ -70,7 +70,6 @@ void Communicator::sendBroadcast(Message *msg)
 	msg->clock = this->clock;
 	msg->senderId = this->processId;
 
-
 	for(unsigned int i = 0; i < activePeers.size(); i++)
 	{
 

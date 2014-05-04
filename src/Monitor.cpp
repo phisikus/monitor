@@ -52,6 +52,7 @@ void Monitor::finalize()
 
 void Monitor::communicationLoop()
 {
+
 	Message *msg;
 	while(true)
 	{

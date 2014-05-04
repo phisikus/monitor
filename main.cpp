@@ -5,10 +5,9 @@
 
 void tryPowerOfTwo()
 {
-
-	Monitor *monitor = new Monitor();
-
 	Mutex *m = new Mutex(1);
+	Monitor *monitor = new Monitor();
+	
 	for(unsigned int i = 0; i < 2 ; i++)
 	{
 		monitor->lock(m);
@@ -35,9 +34,10 @@ void tryPowerOfTwo()
 
 void tryCondition()
 {
-	Monitor *monitor = new Monitor();
 	Mutex *m = new Mutex(1);
 	ConditionVariable *cv = new ConditionVariable(1);
+	Monitor *monitor = new Monitor();
+	
 
 	if(monitor->communicator->processId % 2)
 	{
