@@ -25,6 +25,7 @@ class Communicator
 		void waitForMessage();
 		Message* recvMessage();
 		void log(LogLevel level, string text);
+		void barrier();
 		void close();
 
 		mutex * getCommunicationMutex();

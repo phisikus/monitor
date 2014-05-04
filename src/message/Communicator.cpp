@@ -18,7 +18,6 @@ void Communicator::close()
 	if(this->initialized)
 	{	
 		this->initialized = false;
-		MPI_Barrier(MPI_COMM_WORLD);
 		MPI::Finalize();
 	}
 }
@@ -120,4 +119,9 @@ Message* Communicator::recvMessage()
 mutex * Communicator::getCommunicationMutex()
 {
 	return &this->communicationMutex;
+}
+
+void barrier()
+{
+	MPI_Barrier(MPI_COMM_WORLD);
 }
