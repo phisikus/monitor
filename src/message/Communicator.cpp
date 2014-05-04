@@ -18,6 +18,9 @@ void Communicator::close()
 	if(this->initialized)
 	{	
 		this->initialized = false;
+		MPI_Barrier(MPI_COMM_WORLD);
+
+		this->log(TRACE,"Last barrier before shutdown.");
 		MPI::Finalize();
 	}
 }
@@ -121,7 +124,7 @@ mutex * Communicator::getCommunicationMutex()
 	return &this->communicationMutex;
 }
 
-void barrier()
+void Communicator::barrier()
 {
 	MPI_Barrier(MPI_COMM_WORLD);
 }

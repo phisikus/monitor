@@ -47,7 +47,7 @@ void Monitor::init(int argc, char **argv)
 
 void Monitor::finalize()
 {
-	MPI_Barrier(MPI_COMM_WORLD);
+	communicator->barrier();
 	Message *q = new Message();
 	q->type = QUIT;
 	q->recipientId = communicator->processId;
@@ -56,7 +56,7 @@ void Monitor::finalize()
 	this->log(TRACE, "Waiting for communication thread to join parent.");
 	this->communicationThread->join();	
 	this->log(TRACE, "Communication thread joined parent.");
-	MPI_Barrier(MPI_COMM_WORLD);
+	communicator->barrier();
 	communicator->close();
 	this->log(TRACE, "Monitor: MPI finalized. ");
 }
