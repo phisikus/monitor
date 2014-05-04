@@ -39,12 +39,11 @@ void tryCondition()
 	Monitor *monitor = new Monitor();
 	
 
-	if(monitor->communicator->processId % 2)
+	if(monitor->communicator->processId  == 0)
 	{
 		monitor->lock(m);		
 		monitor->wait(cv, m);	
 		monitor->log(INFO,"I left wait, now i will signal in 2 seconds.");
-		usleep(4000000);
 		monitor->signalOne(cv);
 		monitor->unlock(m);
 	}    
