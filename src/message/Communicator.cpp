@@ -3,14 +3,15 @@
 
 void Communicator::init(int argc, char **argv)
 {
+	int count = 0;
 	this->processName = new char[MPI_MAX_PROCESSOR_NAME];
 	MPI::Init_thread(argc, argv, MPI_THREAD_MULTIPLE);
 	MPI_Comm_rank(MPI_COMM_WORLD, &this->processId);
-	MPI_Comm_size(MPI_COMM_WORLD, &this->processCount);
+	MPI_Comm_size(MPI_COMM_WORLD, &count);
 	MPI_Get_processor_name(this->processName, new int);
-	this->activePeers.resize(this->processCount, true);
-	this->activePeers[this->processId] = false;
+	this->processCount = count;
 	this->initialized = true;
+
 };
 
 void Communicator::close()
@@ -52,7 +53,6 @@ void Communicator::sendMessage(Message *msg)
 	if(!initialized) return;
 
 	communicationMutex.lock();
-	//if((msg != NULL) && (this->activePeers[msg->recipientId]))
 	if(msg != NULL)
 	{
 		this->clock++;
@@ -74,7 +74,7 @@ void Communicator::sendBroadcast(Message *msg)
 	msg->clock = this->clock;
 	msg->senderId = this->processId;
 
-	for(unsigned int i = 0; i < activePeers.size(); i++)
+	for(unsigned int i = 0; i < this->processCount; i++)
 	{
 
 		msg->recipientId = i;

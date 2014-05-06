@@ -14,8 +14,7 @@ class Communicator
 	public:
 		int processId;
 		char *processName;
-		int processCount;
-		vector<bool> activePeers;
+		unsigned int processCount;
 		long clock = 0;
 
 		bool initialized = false;

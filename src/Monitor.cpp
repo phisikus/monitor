@@ -346,10 +346,11 @@ void Monitor::lock(Mutex *mutex)
 	}
 
 	communicator->getCommunicationMutex()->lock();
-	mutex->agreeVector = new vector<bool>(communicator->activePeers.size(), false);
-	for(unsigned int i = 0; i < communicator->activePeers.size(); i++)
+	mutex->agreeVector = new vector<bool>(communicator->processCount, false);
+	int	processCount = communicator->processCount;
+	for(int i = 0; i < processCount; i++)
 	{
-		(* mutex->agreeVector)[i] = !communicator->activePeers[i];
+		(* mutex->agreeVector)[i] = (i == communicator->processId);
 	}
 	communicator->getCommunicationMutex()->unlock();
 
@@ -416,10 +417,11 @@ void Monitor::unlock(Mutex *mutex)
 
 	// Create new agree vector.
 	communicator->getCommunicationMutex()->lock();
-	mutex->agreeVector = new vector<bool>(communicator->activePeers.size(), false);
-	for(unsigned int i = 0; i < communicator->activePeers.size(); i++)
+	mutex->agreeVector = new vector<bool>(communicator->processCount, false);
+	int processCount = communicator->processCount;
+	for(int i = 0; i < processCount; i++)
 	{
-		(* mutex->agreeVector)[i] = !communicator->activePeers[i];
+		(* mutex->agreeVector)[i] = (i == communicator->processId);
 	}
 	communicator->getCommunicationMutex()->unlock();
 
