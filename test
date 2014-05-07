@@ -1,0 +1,19 @@
+#!/bin/bash
+good=0
+fail=0
+while true
+	do
+		result=`make run | grep CS | wc -l`
+		if [ $result = "20" ]
+			then
+				good=$[$good+1]
+				echo "Ok, $good"
+			else
+				fail=$[$fail+1]	
+				echo "Fail, $fail, wynik = $result"			
+				exit
+		fi
+done
+
+
+
