@@ -28,6 +28,7 @@ class Monitor
 
 	private:
 		thread *communicationThread;
+		unsigned int quitMessages = 0;
 
 		void init(int argc, char **argv);
 		void communicationLoop();

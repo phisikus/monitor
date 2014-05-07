@@ -47,16 +47,15 @@ void Monitor::init(int argc, char **argv)
 
 void Monitor::finalize()
 {
-	communicator->barrier();
 	Message *q = new Message();
 	q->type = QUIT;
 	q->recipientId = communicator->processId;
 	communicator->sendMessage(q);
+	communicator->sendBroadcast(q);
 	delete q;
 	this->log(TRACE, "Waiting for communication thread to join parent.");
 	this->communicationThread->join();	
 	this->log(TRACE, "Communication thread joined parent.");
-	communicator->barrier();
 	communicator->close();
 	this->log(TRACE, "Monitor: MPI finalized. ");
 }
@@ -240,7 +239,9 @@ void Monitor::communicationLoop()
 
 			case QUIT:
 				{
-					return;
+					this->quitMessages++;
+					if(this->quitMessages == communicator->processCount)
+						return;
 					break;
 				}
 
