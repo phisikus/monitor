@@ -49,9 +49,9 @@ void Monitor::finalize()
 {
 	Message *q = new Message();
 	q->type = QUIT;
+	communicator->sendBroadcast(q);
 	q->recipientId = communicator->processId;
 	communicator->sendMessage(q);
-	communicator->sendBroadcast(q);
 	delete q;
 	this->log(TRACE, "Waiting for communication thread to join parent.");
 	this->communicationThread->join();	
