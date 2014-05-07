@@ -240,7 +240,6 @@ void Monitor::communicationLoop()
 
 			case QUIT:
 				{
-					usleep(500000);
 					return;
 					break;
 				}
