@@ -22,6 +22,7 @@ void tryPowerOfTwo()
 		(*y) *= 2;
 		monitor->unlock(m);
 	}
+
 	monitor->finalize();
 	delete monitor;
 	monitor = NULL;

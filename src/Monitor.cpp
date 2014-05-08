@@ -54,7 +54,12 @@ void Monitor::finalize()
 	communicator->sendMessage(q);
 	delete q;
 	this->log(TRACE, "Waiting for communication thread to join parent.");
-	this->communicationThread->join();	
+	
+	try {
+		this->communicationThread->join();	
+	} catch(const std::system_error& e) {
+	}
+
 	this->log(TRACE, "Communication thread joined parent.");
 	communicator->close();
 	this->log(TRACE, "Monitor: MPI finalized. ");
@@ -241,7 +246,10 @@ void Monitor::communicationLoop()
 				{
 					this->quitMessages++;
 					if(this->quitMessages == communicator->processCount)
+					{
+						communicator->initialized = false;
 						return;
+					}
 					break;
 				}
 
