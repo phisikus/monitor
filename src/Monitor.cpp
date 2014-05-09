@@ -22,7 +22,6 @@ Monitor::Monitor(int argc, char **argv)
 
 Monitor::~Monitor()
 {
-	this->finalize();
 	this->log(TRACE, "Monitor: object destroyed.");
 }
 
@@ -59,6 +58,8 @@ void Monitor::finalize()
 		this->communicationThread->join();	
 	} catch(const std::system_error& e) {
 	}
+	
+	communicator->barrier();
 
 	this->log(TRACE, "Communication thread joined parent.");
 	communicator->close();
