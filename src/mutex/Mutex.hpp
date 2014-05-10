@@ -21,6 +21,7 @@ class Mutex
 		mutex operationMutex; // local mutex that will block communicationLoop for this distributed Mutex during lock/unlock.
 		mutex localMutex; // local mutex for thread safe behaviour
 		Message *previousReturn = NULL; // This field will contain most recent RETURN message (based on clock) or DATA. When we enter CS it will be possible to get current data and save it to this variable.
+		bool keepAlive = false; // true here means that there was no request for this mutex so no RETURN message was sent and in the future while sending AGREE no one will know that we had any data - instead we will send RETURN.
 
 		condition_variable criticalSectionCondition; // On this variable lock() will wait till all agrees are collected by communicationLoop and DATA packet is send if needed
 		unique_lock<mutex> *criticalSectionConditionLock;

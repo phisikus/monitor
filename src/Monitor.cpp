@@ -53,12 +53,12 @@ void Monitor::finalize()
 	communicator->sendMessage(q);
 	delete q;
 	this->log(TRACE, "Waiting for communication thread to join parent.");
-	
+
 	try {
 		this->communicationThread->join();	
 	} catch(const std::system_error& e) {
 	}
-	
+
 	communicator->barrier();
 
 	this->log(TRACE, "Communication thread joined parent.");
@@ -87,6 +87,7 @@ void Monitor::communicationLoop()
 					if(m != NULL)
 					{
 						m->operationMutex.lock();
+
 						if(m->requesting)
 						{
 							// If REQUEST has earlier time than ours -> AGREE
@@ -105,9 +106,20 @@ void Monitor::communicationLoop()
 								else
 								{
 									Message *agreeReply = new Message();
-									agreeReply->type = AGREE;
 									agreeReply->referenceId = msg->referenceId;
 									agreeReply->recipientId = msg->senderId;
+								
+									if(m->keepAlive)
+									{
+										agreeReply->type = RETURN;
+										if(m->getDataSize() > 0)
+											agreeReply->hasData = true;
+									}
+									else
+									{
+										agreeReply->type = AGREE;
+									}
+									
 									communicator->sendMessage(agreeReply);
 									delete agreeReply;
 								}
@@ -118,12 +130,24 @@ void Monitor::communicationLoop()
 						{
 							if(!m->locked)
 							{
-								Message *agreeReply = new Message();
-								agreeReply->type = AGREE;
-								agreeReply->referenceId = msg->referenceId;
-								agreeReply->recipientId = msg->senderId;
-								communicator->sendMessage(agreeReply);
-								delete agreeReply;
+									Message *agreeReply = new Message();
+									agreeReply->referenceId = msg->referenceId;
+									agreeReply->recipientId = msg->senderId;
+								
+									if(m->keepAlive)
+									{
+										agreeReply->type = RETURN;
+										if(m->getDataSize() > 0)
+											agreeReply->hasData = true;
+									}
+									else
+									{
+										agreeReply->type = AGREE;
+									}
+									
+									communicator->sendMessage(agreeReply);
+									delete agreeReply;
+								
 							}
 							else
 							{
@@ -144,6 +168,7 @@ void Monitor::communicationLoop()
 					{
 						m->operationMutex.lock();
 						(*(m->agreeVector))[msg->senderId] = true;
+						m->keepAlive = false;
 
 						if(m->previousReturn != NULL)
 						{
@@ -201,6 +226,7 @@ void Monitor::communicationLoop()
 					{
 						// Note that sender agreed.
 						(*(m->agreeVector))[msg->senderId] = true;
+						m->keepAlive = false;
 						m->operationMutex.unlock();
 
 						// check if conditions to enter C.S. were met and signal conditional variable.
@@ -346,6 +372,7 @@ void Monitor::lock(Mutex *mutex)
 	// Set mutex to "requesting" state.
 	mutex->operationMutex.lock();
 	mutex->requesting = true;
+	mutex->keepAlive = false;
 
 	// Determine which other processes should agree before we can get in (all except those who sent QUIT)
 	if(mutex->agreeVector != NULL)
@@ -410,6 +437,10 @@ void Monitor::unlock(Mutex *mutex)
 	{
 		retMessage->hasData = mutex->previousReturn->hasData;
 	}
+
+	// keepAlive means that no one is requesting right now and we should respond with RETURN+(hasData=true) instead of AGREE in the future
+	if(mutex->heldUpRequests.size() == 0)
+		mutex->keepAlive = true;
 
 	// send Messages to all held up processes
 	for (std::list<int>::const_iterator it = mutex->heldUpRequests.begin(), end = mutex->heldUpRequests.end(); it != end; ++it)
