@@ -50,7 +50,6 @@ void producerConsumer()
 	monitor->signalAll(cv_c);
 
 	monitor->unlock(m);
-	while(true){};
 	monitor->finalize();
 	delete monitor;
 	monitor = NULL;

@@ -7,5 +7,6 @@
 int main(int argc, char *argv[])
 {
 	producerConsumer();
+//tryPowerOfTwo();
 	return 0;
 }
