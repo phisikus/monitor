@@ -176,8 +176,8 @@ void Monitor::communicationLoop()
 						}
 
 						m->previousReturn = msg;
-						m->operationMutex.unlock();
-						enterCriticalSection(m);
+						m->operationMutex.unlock();						
+						enterCriticalSection(m);						
 					}
 				}
 				break;
@@ -297,7 +297,7 @@ void Monitor::enterCriticalSection(Mutex *m)
 
 	m->operationMutex.lock();
 	if((m->requesting) && (m->agreeVectorTrue()))
-	{
+		{
 		// conditions to enter C.S. were met. We should check if it is necessary to request for data...
 		if(m->previousReturn == NULL)
 		{
@@ -409,7 +409,7 @@ void Monitor::lock(Mutex *mutex)
 		unique_lock<std::mutex> cLock(mutex->criticalSectionConditionMutex);
 
 		mutex->operationMutex.unlock();
-
+		
 		while(mutex->requesting)
 			mutex->criticalSectionCondition.wait(cLock);				
 	}
@@ -493,6 +493,8 @@ void Monitor::wait(ConditionVariable *cv, Mutex *m)
 	{
 		this->unlock(m);
 		cv->cv.wait(l);
+		l.unlock();
+		this->log(INFO,"(" + to_string(cv->id) + ") Trying to reaquire lock...");
 		this->lock(m);
 	}
 

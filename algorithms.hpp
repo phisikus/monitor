@@ -35,20 +35,23 @@ void producerConsumer()
 	
 	// Wait for all consumers to appear. 
 	monitor->lock(m);
+	monitor->log(TRACE,"Here comes the tricky part.");
 	((Buffer *) m->getData())->consumersWaiting++;
 	while(((Buffer *) m->getData())->consumersWaiting < monitor->communicator->processCount)
 	{
 		monitor->wait(cv_c, m);
 		monitor->log(INFO,"Discovered value: " + to_string(((Buffer *) m->getData())->consumersWaiting));
 	}
+	monitor->log(TRACE,"Here ends the trick.");
+
 
 
 	b->availableUnits--;
 	b->units[b->availableUnits] = '-';
 	monitor->log(INFO,"Consumer:  count = " + to_string(b->availableUnits) + " buffer = " + b->units);
 
-	monitor->signalAll(cv_c);
 
+	monitor->signalAll(cv_c);
 	monitor->unlock(m);
 	monitor->finalize();
 	delete monitor;

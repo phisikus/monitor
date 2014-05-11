@@ -59,7 +59,7 @@ void Communicator::sendMessage(Message *msg)
 		msg->senderId = this->processId;
 		msg->clock = this->clock;
 		this->log(TRACE,"Sending message " + toString(msg->type) + " to " + to_string(msg->recipientId) + " (size = " + to_string(msg->getArraySize()) + ", clock = " + to_string(msg->clock) + " )");
-		MPI_Isend(msg->getArray(), msg->getArraySize(), MPI_CHAR, msg->recipientId, 0, MPI_COMM_WORLD, new MPI_Request());
+		MPI_Isend(msg->getArray(), msg->getArraySize(), MPI_CHAR, msg->recipientId, 0, MPI_COMM_WORLD, new MPI_Request());		
 	}
 	communicationMutex.unlock();
 }
