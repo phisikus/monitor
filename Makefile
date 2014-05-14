@@ -8,4 +8,4 @@ compile:
 	mpic++  src/mutex/Mutex.* src/condition/ConditionVariable.* src/message/Message.* src/message/Communicator.* src/Monitor.* main.cpp -o ./bin/monitor -lpthread -Wall -std=c++0x
 
 run:
-	mpirun -n 10 ./bin/monitor	2>> error.log | tee output.log
+	mpirun -n 10 ./bin/monitor	2>> /dev/null | tee output.log

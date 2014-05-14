@@ -5,7 +5,7 @@
 #include "Message.hpp"
 using namespace std;
 
-#define DEBUG
+//#define DEBUG
 
 enum LogLevel { TRACE, INFO, ERROR };
 
