@@ -6,11 +6,11 @@ This project is an implementation of distributed "monitor" (mutual exclusion + c
 
 You can compile this project using Makefile:
 
-  make clean && make
+    make clean && make
 
 The base directory contains example solution of producer-consumer problem (see algorithms.hpp & main.cpp) that uses main library located in "src" subdirectory. You can run that example implementation using:
 
-  make run
+    make run
 
 It should create 10 processes and produce output that shows competition for resources.
 
